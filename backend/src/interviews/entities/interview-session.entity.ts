@@ -41,14 +41,38 @@ export class InterviewSession {
   @JoinColumn({ name: 'template_id' })
   template: Template;
 
-  @ApiProperty({ description: '候选人ID', example: 1 })
-  @Column({ name: 'candidate_id' })
+  @ApiProperty({ description: '候选人ID', example: 1, required: false })
+  @Column({ name: 'candidate_id', nullable: true })
   candidateId: number;
 
-  @ApiProperty({ description: '候选人', type: () => User })
+  @ApiProperty({ description: '候选人', type: () => User, required: false })
   @ManyToOne(() => User, (user) => user.candidateSessions)
   @JoinColumn({ name: 'candidate_id' })
   candidate: User;
+
+  @ApiProperty({ description: '候选人姓名', example: '张三' })
+  @Column({ name: 'candidate_name', length: 100 })
+  candidateName: string;
+
+  @ApiProperty({ description: '候选人邮箱', example: 'zhangsan@example.com' })
+  @Column({ name: 'candidate_email', length: 100 })
+  candidateEmail: string;
+
+  @ApiProperty({ description: '候选人手机号', example: '13800138000', required: false })
+  @Column({ name: 'candidate_phone', length: 20, nullable: true })
+  candidatePhone: string;
+
+  @ApiProperty({ description: '应聘职位', example: '前端开发工程师', required: false })
+  @Column({ name: 'position', length: 100, nullable: true })
+  position: string;
+
+  @ApiProperty({ description: '面试邀请链接', example: 'https://interview.example.com/invite/abc123' })
+  @Column({ name: 'invite_token', length: 255, unique: true })
+  inviteToken: string;
+
+  @ApiProperty({ description: '面试链接过期时间', example: '2024-01-01T12:00:00Z' })
+  @Column({ name: 'invite_expires_at', type: 'timestamp' })
+  inviteExpiresAt: Date;
 
   @ApiProperty({ description: '面试官ID', example: 2, required: false })
   @Column({ name: 'interviewer_id', nullable: true })

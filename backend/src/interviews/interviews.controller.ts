@@ -88,5 +88,21 @@ export class InterviewsController {
   removeTemplate(@Param('id') id: string) {
     return this.interviewsService.removeTemplate(+id);
   }
+
+  // 邀请链接相关
+  @Get('invite/:token')
+  @ApiOperation({ summary: '通过邀请链接获取面试信息' })
+  getSessionByInvite(@Param('token') token: string) {
+    return this.interviewsService.getSessionByInviteToken(token);
+  }
+
+  @Post('invite/:token/join')
+  @ApiOperation({ summary: '候选人通过邀请链接加入面试' })
+  joinSessionByInvite(
+    @Param('token') token: string,
+    @Request() req,
+  ) {
+    return this.interviewsService.joinSessionByInvite(token, req.user.userId);
+  }
 }
 
