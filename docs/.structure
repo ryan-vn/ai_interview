@@ -1,0 +1,25 @@
+📁 docs/ - 项目文档中心
+│
+├── 📄 README.md                      # 文档索引和快速导航
+├── 📄 PROJECT_SUMMARY.md             # 项目总体概述
+├── 📄 MIGRATION_GUIDE.md             # 文档迁移指南
+│
+├── 📂 requirements/                   # 需求文档
+│   ├── required.md                   # 基础需求说明
+│   └── requirements_detailed.md      # 详细需求规格
+│
+├── 📂 development/                    # 开发文档
+│   └── DEVELOPMENT.md                # 开发环境搭建和开发指南
+│
+├── 📂 deployment/                     # 部署文档
+│   └── DEPLOYMENT.md                 # 部署流程和配置说明
+│
+├── 📂 design/                         # 设计文档
+│   └── ui-design-system.md           # UI设计系统和组件规范
+│
+└── 📂 testing/                        # 测试文档
+    ├── TESTING_GUIDE.md              # 测试指南和最佳实践
+    ├── TEST_README.md                # 测试文档说明
+    ├── TEST_CASES.md                 # 详细测试用例
+    └── TEST_SUMMARY.md               # 测试总结报告
+
