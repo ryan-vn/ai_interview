@@ -5,9 +5,10 @@
 ## 📖 文档导航
 
 ### 1. 需求文档 (Requirements)
-- [项目需求文档](requirements/PROJECT_REQUIREMENTS.md) - 详细的功能需求和业务流程
-- [用户故事](requirements/USER_STORIES.md) - 各角色的使用场景
-- [功能清单](requirements/FEATURE_LIST.md) - 完整的功能列表
+- [需求文档索引](requirements/README.md) - 需求文档导航和概述
+- [基础需求文档](requirements/required.md) - 项目基础需求和功能定义
+- [详细需求文档](requirements/requirements_detailed.md) - 完整的功能需求和业务流程
+- [面试流程需求](requirements/interview_workflow_requirements.md) - 核心业务流程需求
 
 ### 2. 开发文档 (Development)
 - [开发指南](development/DEVELOPMENT.md) - 开发环境配置和开发流程
@@ -35,7 +36,7 @@
 
 如果你是第一次接触这个项目，建议按以下顺序阅读：
 
-1. **了解项目** → [项目需求文档](requirements/PROJECT_REQUIREMENTS.md)
+1. **了解项目** → [需求文档索引](requirements/README.md)
 2. **搭建环境** → [开发指南](development/DEVELOPMENT.md)
 3. **开始开发** → [代码规范](development/CODE_STANDARDS.md)
 4. **部署上线** → [部署指南](deployment/DEPLOYMENT.md)
@@ -44,6 +45,8 @@
 
 - 2024-10-21: 初始化文档结构
 - 2024-10-21: 添加开发和部署文档
+- 2024-01-01: 添加面试流程需求文档
+- 2024-01-01: 更新需求文档索引
 
 ## 💡 贡献指南
 

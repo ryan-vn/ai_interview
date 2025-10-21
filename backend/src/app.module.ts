@@ -30,6 +30,11 @@ import { ReportsModule } from './reports/reports.module';
         synchronize: false, // 生产环境应该设为 false
         logging: configService.get('NODE_ENV') === 'development',
         charset: 'utf8mb4',
+        timezone: '+08:00',
+        extra: {
+          connectionLimit: 10,
+          charset: 'utf8mb4_unicode_ci',
+        },
       }),
       inject: [ConfigService],
     }),

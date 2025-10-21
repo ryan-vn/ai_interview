@@ -5,6 +5,7 @@ import { InterviewSession, InterviewStatus } from './entities/interview-session.
 import { Template } from './entities/template.entity';
 import { CreateInterviewSessionDto } from './dto/create-interview-session.dto';
 import { CreateTemplateDto } from './dto/create-template.dto';
+import { EmailService } from '../common/services/email.service';
 import { randomBytes } from 'crypto';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class InterviewsService {
     private sessionsRepository: Repository<InterviewSession>,
     @InjectRepository(Template)
     private templatesRepository: Repository<Template>,
+    private emailService: EmailService,
   ) {}
 
   // 面试场次相关
@@ -53,11 +55,12 @@ export class InterviewsService {
 
   // 发送面试邀请邮件
   private async sendInterviewInvitation(session: InterviewSession): Promise<void> {
-    // TODO: 实现邮件发送逻辑
-    // 这里可以集成邮件服务，如 SendGrid, AWS SES 等
-    console.log(`发送面试邀请邮件给: ${session.candidateEmail}`);
-    console.log(`面试链接: https://interview.example.com/invite/${session.inviteToken}`);
-    console.log(`面试时间: ${session.scheduledAt}`);
+    try {
+      await this.emailService.sendInterviewInvitation(session);
+    } catch (error) {
+      // 邮件发送失败不应该影响面试创建
+      console.error('发送面试邀请邮件失败:', error);
+    }
   }
 
   // 通过邀请令牌获取面试场次
@@ -164,6 +167,25 @@ export class InterviewsService {
   async removeTemplate(id: number): Promise<void> {
     const template = await this.findOneTemplate(id);
     await this.templatesRepository.remove(template);
+  }
+
+  // 重新发送邀请邮件
+  async resendInvite(id: number): Promise<{ message: string }> {
+    const session = await this.findOneSession(id);
+    
+    // 检查邀请是否过期
+    if (new Date() > session.inviteExpiresAt) {
+      // 生成新的邀请令牌和过期时间
+      session.inviteToken = randomBytes(32).toString('hex');
+      session.inviteExpiresAt = new Date();
+      session.inviteExpiresAt.setDate(session.inviteExpiresAt.getDate() + 7);
+      await this.sessionsRepository.save(session);
+    }
+    
+    // 重新发送邀请邮件
+    await this.sendInterviewInvitation(session);
+    
+    return { message: '邀请邮件已重新发送' };
   }
 }
 

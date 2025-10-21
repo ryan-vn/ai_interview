@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, User, Mail, Phone, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { interviewsApi } from '@/lib/api';
 
 interface InterviewSession {
   id: number;
@@ -47,14 +48,10 @@ export default function InvitePage() {
 
   const fetchSessionInfo = async () => {
     try {
-      const response = await fetch(`/api/interviews/invite/${token}`);
-      if (!response.ok) {
-        throw new Error('面试邀请链接无效或已过期');
-      }
-      const data = await response.json();
-      setSession(data);
+      const response = await interviewsApi.getSessionByInvite(token);
+      setSession(response.data);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.response?.data?.message || '面试邀请链接无效或已过期');
     } finally {
       setLoading(false);
     }
@@ -63,21 +60,11 @@ export default function InvitePage() {
   const handleJoinInterview = async () => {
     setJoining(true);
     try {
-      const response = await fetch(`/api/interviews/invite/${token}/join`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('加入面试失败');
-      }
-
+      await interviewsApi.joinSessionByInvite(token);
       // 跳转到面试页面
       router.push(`/interviews/${session?.id}`);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.response?.data?.message || '加入面试失败');
     } finally {
       setJoining(false);
     }

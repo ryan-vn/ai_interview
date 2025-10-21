@@ -4,16 +4,19 @@ services:
     image: mysql:8.0
     container_name: interview_mysql
     restart: always
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
       MYSQL_ROOT_PASSWORD: root123456
       MYSQL_DATABASE: interview_system
       MYSQL_USER: interview_user
       MYSQL_PASSWORD: interview_pass
+      TZ: Asia/Shanghai
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./backend/my.cnf:/etc/mysql/conf.d/my.cnf
     networks:
       - interview_network
     healthcheck:

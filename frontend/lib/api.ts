@@ -64,6 +64,10 @@ export const interviewsApi = {
   getTemplates: () => api.get('/interviews/templates'),
   getTemplate: (id: number) => api.get(`/interviews/templates/${id}`),
   createTemplate: (data: any) => api.post('/interviews/templates', data),
+  // 邀请链接相关
+  getSessionByInvite: (token: string) => api.get(`/interviews/invite/${token}`),
+  joinSessionByInvite: (token: string) => api.post(`/interviews/invite/${token}/join`),
+  resendInvite: (id: number) => api.post(`/interviews/sessions/${id}/resend-invite`),
 };
 
 export const submissionsApi = {

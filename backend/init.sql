@@ -1,6 +1,13 @@
 -- 初始化数据库脚本
 -- 注意：该脚本在数据库首次创建时自动执行
 
+-- 设置字符集
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
+
+-- 确保数据库使用正确的字符集
+ALTER DATABASE interview_system CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
 -- 创建角色表
 CREATE TABLE IF NOT EXISTS `roles` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,

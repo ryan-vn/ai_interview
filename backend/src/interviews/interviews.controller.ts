@@ -104,5 +104,11 @@ export class InterviewsController {
   ) {
     return this.interviewsService.joinSessionByInvite(token, req.user.userId);
   }
+
+  @Post('sessions/:id/resend-invite')
+  @ApiOperation({ summary: '重新发送面试邀请邮件' })
+  resendInvite(@Param('id') id: string) {
+    return this.interviewsService.resendInvite(+id);
+  }
 }
 

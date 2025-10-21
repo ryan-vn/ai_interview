@@ -5,6 +5,7 @@ import { InterviewsController } from './interviews.controller';
 import { InterviewSession } from './entities/interview-session.entity';
 import { Template } from './entities/template.entity';
 import { QuestionsModule } from '../questions/questions.module';
+import { EmailService } from '../common/services/email.service';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { QuestionsModule } from '../questions/questions.module';
     QuestionsModule,
   ],
   controllers: [InterviewsController],
-  providers: [InterviewsService],
+  providers: [InterviewsService, EmailService],
   exports: [InterviewsService],
 })
 export class InterviewsModule {}

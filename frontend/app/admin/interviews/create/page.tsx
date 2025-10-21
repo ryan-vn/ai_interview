@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar, Clock, User, Mail, Phone, Briefcase, Users } from 'lucide-react';
 import { format } from 'date-fns';
+import { interviewsApi } from '@/lib/api';
 
 interface Template {
   id: number;
@@ -57,9 +58,8 @@ export default function CreateInterviewPage() {
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch('/api/interviews/templates');
-      const data = await response.json();
-      setTemplates(data);
+      const response = await interviewsApi.getTemplates();
+      setTemplates(response.data);
     } catch (error) {
       console.error('获取模板失败:', error);
     }
@@ -116,40 +116,28 @@ export default function CreateInterviewPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/interviews/sessions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      const response = await interviewsApi.createSession({
+        name: formData.name,
+        templateId: parseInt(formData.templateId),
+        interviewerId: formData.interviewerId ? parseInt(formData.interviewerId) : undefined,
+        scheduledAt: formData.scheduledAt,
+        candidateInfo: {
+          name: formData.candidateName,
+          email: formData.candidateEmail,
+          phone: formData.candidatePhone || undefined,
+          position: formData.position || undefined,
         },
-        body: JSON.stringify({
-          name: formData.name,
-          templateId: parseInt(formData.templateId),
-          interviewerId: formData.interviewerId ? parseInt(formData.interviewerId) : undefined,
-          scheduledAt: formData.scheduledAt,
-          candidateInfo: {
-            name: formData.candidateName,
-            email: formData.candidateEmail,
-            phone: formData.candidatePhone || undefined,
-            position: formData.position || undefined,
-          },
-          settings: {
-            duration: formData.duration ? parseInt(formData.duration) : undefined,
-            allowReschedule: formData.allowReschedule,
-            reminderEnabled: formData.reminderEnabled,
-          },
-        }),
+        settings: {
+          duration: formData.duration ? parseInt(formData.duration) : undefined,
+          allowReschedule: formData.allowReschedule,
+          reminderEnabled: formData.reminderEnabled,
+        },
       });
 
-      if (!response.ok) {
-        throw new Error('创建面试场次失败');
-      }
-
-      const result = await response.json();
       alert('面试场次创建成功！候选人将收到邮件通知。');
       router.push('/admin/interviews');
     } catch (error: any) {
-      alert(error.message || '创建失败，请重试');
+      alert(error.response?.data?.message || '创建失败，请重试');
     } finally {
       setLoading(false);
     }
