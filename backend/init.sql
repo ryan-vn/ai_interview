@@ -73,7 +73,13 @@ CREATE TABLE IF NOT EXISTS `interview_sessions` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `name` VARCHAR(100) NOT NULL,
   `template_id` INT NOT NULL,
-  `candidate_id` INT NOT NULL,
+  `candidate_id` INT NULL,
+  `candidate_name` VARCHAR(100) NOT NULL,
+  `candidate_email` VARCHAR(100) NOT NULL,
+  `candidate_phone` VARCHAR(20) NULL,
+  `position` VARCHAR(100) NULL,
+  `invite_token` VARCHAR(255) UNIQUE NULL,
+  `invite_expires_at` TIMESTAMP NULL,
   `interviewer_id` INT,
   `status` ENUM('scheduled', 'in_progress', 'completed', 'cancelled') DEFAULT 'scheduled',
   `start_time` TIMESTAMP NULL,
@@ -84,11 +90,12 @@ CREATE TABLE IF NOT EXISTS `interview_sessions` (
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (`template_id`) REFERENCES `templates`(`id`) ON DELETE CASCADE,
-  FOREIGN KEY (`candidate_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`candidate_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
   FOREIGN KEY (`interviewer_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
   INDEX `idx_status` (`status`),
   INDEX `idx_candidate` (`candidate_id`),
-  INDEX `idx_interviewer` (`interviewer_id`)
+  INDEX `idx_interviewer` (`interviewer_id`),
+  INDEX `idx_invite_token` (`invite_token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 创建提交记录表
@@ -155,12 +162,12 @@ INSERT INTO `roles` (`name`, `description`) VALUES
 ('admin', '管理员角色')
 ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
 
--- 插入测试用户（密码都是: password123）
+-- 插入测试用户（密码都是: 111111）
 -- 注意：生产环境中应该删除这些测试数据
 INSERT INTO `users` (`username`, `email`, `password`, `role_id`) VALUES
-('admin', 'admin@example.com', '$2b$10$YourHashedPasswordHere', 3),
-('interviewer1', 'interviewer@example.com', '$2b$10$YourHashedPasswordHere', 2),
-('candidate1', 'candidate@example.com', '$2b$10$YourHashedPasswordHere', 1)
+('admin', 'admin@example.com', '$2b$10$jQp4AvZB5U5LEuH7uF60.OaZo6UAIrbo5MPBc8q5qbyvTpywZ5.Sa', 3),
+('interviewer1', 'interviewer@example.com', '$2b$10$jQp4AvZB5U5LEuH7uF60.OaZo6UAIrbo5MPBc8q5qbyvTpywZ5.Sa', 2),
+('candidate1', 'candidate@example.com', '$2b$10$jQp4AvZB5U5LEuH7uF60.OaZo6UAIrbo5MPBc8q5qbyvTpywZ5.Sa', 1)
 ON DUPLICATE KEY UPDATE `username` = VALUES(`username`);
 
 -- 插入示例题目

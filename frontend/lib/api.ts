@@ -68,6 +68,12 @@ export const interviewsApi = {
   getSessionByInvite: (token: string) => api.get(`/interviews/invite/${token}`),
   joinSessionByInvite: (token: string) => api.post(`/interviews/invite/${token}/join`),
   resendInvite: (id: number) => api.post(`/interviews/sessions/${id}/resend-invite`),
+  // HR专用功能
+  getHrStatistics: () => api.get('/interviews/hr/statistics'),
+  getAllSessionsForHr: () => api.get('/interviews/hr/sessions'),
+  createBatchSessions: (sessions: any[]) => api.post('/interviews/hr/sessions/batch', { sessions }),
+  getCandidates: () => api.get('/interviews/hr/candidates'),
+  cancelSession: (id: number) => api.patch(`/interviews/sessions/${id}/cancel`),
 };
 
 export const submissionsApi = {

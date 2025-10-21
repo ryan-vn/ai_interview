@@ -187,5 +187,116 @@ export class InterviewsService {
     
     return { message: '邀请邮件已重新发送' };
   }
+
+  // HR专用功能
+  async getHrStatistics(): Promise<any> {
+    const totalSessions = await this.sessionsRepository.count();
+    const scheduledSessions = await this.sessionsRepository.count({
+      where: { status: InterviewStatus.SCHEDULED }
+    });
+    const inProgressSessions = await this.sessionsRepository.count({
+      where: { status: InterviewStatus.IN_PROGRESS }
+    });
+    const completedSessions = await this.sessionsRepository.count({
+      where: { status: InterviewStatus.COMPLETED }
+    });
+    const cancelledSessions = await this.sessionsRepository.count({
+      where: { status: InterviewStatus.CANCELLED }
+    });
+
+    // 获取最近7天的面试统计
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    const recentSessions = await this.sessionsRepository.count({
+      where: {
+        createdAt: {
+          $gte: sevenDaysAgo
+        } as any
+      }
+    });
+
+    return {
+      totalSessions,
+      scheduledSessions,
+      inProgressSessions,
+      completedSessions,
+      cancelledSessions,
+      recentSessions,
+      completionRate: totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0
+    };
+  }
+
+  async findAllSessionsForHr(): Promise<InterviewSession[]> {
+    return this.sessionsRepository.find({
+      relations: ['template', 'candidate', 'interviewer'],
+      order: { createdAt: 'DESC' }
+    });
+  }
+
+  async createBatchSessions(sessions: CreateInterviewSessionDto[], userId: number): Promise<{ created: number; failed: number; results: any[] }> {
+    const results = [];
+    let created = 0;
+    let failed = 0;
+
+    for (const sessionData of sessions) {
+      try {
+        const session = await this.createSession(sessionData, userId);
+        results.push({ success: true, session });
+        created++;
+      } catch (error) {
+        results.push({ 
+          success: false, 
+          error: error.message, 
+          sessionData: {
+            name: sessionData.name,
+            candidateEmail: sessionData.candidateInfo.email
+          }
+        });
+        failed++;
+      }
+    }
+
+    return { created, failed, results };
+  }
+
+  async getCandidates(): Promise<any[]> {
+    const sessions = await this.sessionsRepository.find({
+      select: ['candidateName', 'candidateEmail', 'candidatePhone', 'position', 'createdAt'],
+      order: { createdAt: 'DESC' }
+    });
+
+    // 去重并统计每个候选人的面试次数
+    const candidateMap = new Map();
+    
+    sessions.forEach(session => {
+      const key = session.candidateEmail;
+      if (!candidateMap.has(key)) {
+        candidateMap.set(key, {
+          name: session.candidateName,
+          email: session.candidateEmail,
+          phone: session.candidatePhone,
+          position: session.position,
+          interviewCount: 0,
+          firstInterviewDate: session.createdAt,
+          lastInterviewDate: session.createdAt
+        });
+      }
+      
+      const candidate = candidateMap.get(key);
+      candidate.interviewCount++;
+      if (session.createdAt > candidate.lastInterviewDate) {
+        candidate.lastInterviewDate = session.createdAt;
+      }
+    });
+
+    return Array.from(candidateMap.values());
+  }
+
+  async cancelSession(id: number, userId: number): Promise<InterviewSession> {
+    const session = await this.findOneSession(id);
+    session.status = InterviewStatus.CANCELLED;
+    return this.sessionsRepository.save(session);
+  }
 }
 

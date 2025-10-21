@@ -66,15 +66,17 @@ export default function AdminDashboardPage() {
 
   const loadDashboardData = async () => {
     try {
-      const response = await interviewsApi.getSessions();
-      const sessions = response.data;
+      // 使用HR专用API获取统计数据
+      const response = await interviewsApi.getHrStatistics();
+      const sessionsResponse = await interviewsApi.getAllSessionsForHr();
+      const sessions = sessionsResponse.data;
       
       const stats: DashboardStats = {
-        totalSessions: sessions.length,
-        scheduledSessions: sessions.filter(s => s.status === 'scheduled').length,
-        inProgressSessions: sessions.filter(s => s.status === 'in_progress').length,
-        completedSessions: sessions.filter(s => s.status === 'completed').length,
-        cancelledSessions: sessions.filter(s => s.status === 'cancelled').length,
+        totalSessions: response.data.totalSessions,
+        scheduledSessions: response.data.scheduledSessions,
+        inProgressSessions: response.data.inProgressSessions,
+        completedSessions: response.data.completedSessions,
+        cancelledSessions: response.data.cancelledSessions,
         recentSessions: sessions
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
           .slice(0, 5),
@@ -223,6 +225,20 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
 
+          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => router.push('/admin/interviews/batch')}>
+            <CardContent className="pt-6">
+              <div className="flex items-center space-x-4">
+                <div className="p-2 bg-indigo-100 rounded-lg">
+                  <Upload className="h-6 w-6 text-indigo-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">批量创建</h3>
+                  <p className="text-sm text-gray-600">批量创建多个面试</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => router.push('/admin/interviews')}>
             <CardContent className="pt-6">
               <div className="flex items-center space-x-4">
@@ -237,11 +253,25 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => router.push('/questions')}>
+          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => router.push('/admin/candidates')}>
             <CardContent className="pt-6">
               <div className="flex items-center space-x-4">
                 <div className="p-2 bg-purple-100 rounded-lg">
-                  <FileText className="h-6 w-6 text-purple-600" />
+                  <Users className="h-6 w-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">候选人管理</h3>
+                  <p className="text-sm text-gray-600">管理候选人信息</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => router.push('/questions')}>
+            <CardContent className="pt-6">
+              <div className="flex items-center space-x-4">
+                <div className="p-2 bg-yellow-100 rounded-lg">
+                  <FileText className="h-6 w-6 text-yellow-600" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">题库管理</h3>
@@ -267,6 +297,43 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* 快速操作 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Plus className="h-5 w-5 mr-2" />
+                快速操作
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <Button 
+                  onClick={() => router.push('/admin/interviews/create')}
+                  className="w-full flex items-center justify-center space-x-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>创建面试场次</span>
+                </Button>
+                <Button 
+                  onClick={() => router.push('/admin/interviews/batch')}
+                  variant="outline"
+                  className="w-full flex items-center justify-center space-x-2"
+                >
+                  <Upload className="h-4 w-4" />
+                  <span>批量创建面试</span>
+                </Button>
+                <Button 
+                  onClick={() => router.push('/admin/candidates')}
+                  variant="outline"
+                  className="w-full flex items-center justify-center space-x-2"
+                >
+                  <Users className="h-4 w-4" />
+                  <span>管理候选人</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* 最近的面试场次 */}
           <Card>
             <CardHeader>

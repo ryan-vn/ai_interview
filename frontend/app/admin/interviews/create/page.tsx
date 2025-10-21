@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Calendar, Clock, User, Mail, Phone, Briefcase, Users } from 'lucide-react';
+import { Calendar, Clock, User, Mail, Phone, Briefcase, Users, Copy, ExternalLink, CheckCircle, Link } from 'lucide-react';
 import { format } from 'date-fns';
 import { interviewsApi } from '@/lib/api';
 
@@ -29,6 +29,9 @@ export default function CreateInterviewPage() {
   const [loading, setLoading] = useState(false);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [interviewers, setInterviewers] = useState<User[]>([]);
+  const [createdSession, setCreatedSession] = useState<any>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
   
   const [formData, setFormData] = useState({
     // 基本信息
@@ -134,8 +137,8 @@ export default function CreateInterviewPage() {
         },
       });
 
-      alert('面试场次创建成功！候选人将收到邮件通知。');
-      router.push('/admin/interviews');
+      setCreatedSession(response.data);
+      setShowSuccess(true);
     } catch (error: any) {
       alert(error.response?.data?.message || '创建失败，请重试');
     } finally {
@@ -148,6 +151,38 @@ export default function CreateInterviewPage() {
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
+  };
+
+  const copyInviteLink = async () => {
+    if (createdSession?.inviteToken) {
+      const inviteLink = `${window.location.origin}/invite/${createdSession.inviteToken}`;
+      try {
+        await navigator.clipboard.writeText(inviteLink);
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2000);
+      } catch (error) {
+        console.error('Failed to copy link:', error);
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      templateId: '',
+      interviewerId: '',
+      scheduledAt: '',
+      candidateName: '',
+      candidateEmail: '',
+      candidatePhone: '',
+      position: '',
+      duration: '',
+      allowReschedule: true,
+      reminderEnabled: true,
+    });
+    setCreatedSession(null);
+    setShowSuccess(false);
+    setErrors({});
   };
 
   return (
@@ -355,6 +390,103 @@ export default function CreateInterviewPage() {
             </form>
           </CardContent>
         </Card>
+
+        {/* 成功创建后的邀请链接显示 */}
+        {showSuccess && createdSession && (
+          <Card className="mt-6 border-green-200 bg-green-50">
+            <CardHeader>
+              <CardTitle className="text-green-800 flex items-center">
+                <CheckCircle className="h-6 w-6 mr-2" />
+                面试场次创建成功！
+              </CardTitle>
+              <p className="text-green-700">
+                系统已自动生成邀请链接并发送邮件通知候选人
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* 面试信息 */}
+              <div className="bg-white p-4 rounded-lg border">
+                <h4 className="font-semibold text-gray-900 mb-3">面试信息</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p><strong>面试名称：</strong>{createdSession.name}</p>
+                    <p><strong>候选人：</strong>{createdSession.candidateName}</p>
+                    <p><strong>邮箱：</strong>{createdSession.candidateEmail}</p>
+                  </div>
+                  <div>
+                    <p><strong>面试时间：</strong>{format(new Date(createdSession.scheduledAt), 'yyyy-MM-dd HH:mm', { locale: zhCN })}</p>
+                    <p><strong>邀请过期：</strong>{format(new Date(createdSession.inviteExpiresAt), 'yyyy-MM-dd HH:mm', { locale: zhCN })}</p>
+                    <p><strong>面试ID：</strong>{createdSession.id}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 邀请链接 */}
+              <div className="bg-white p-4 rounded-lg border">
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                  <Link className="h-5 w-5 mr-2" />
+                  面试邀请链接
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      value={`${window.location.origin}/invite/${createdSession.inviteToken}`}
+                      readOnly
+                      className="text-sm"
+                    />
+                    <Button
+                      onClick={copyInviteLink}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center space-x-1"
+                    >
+                      {copiedLink ? (
+                        <>
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          <span>已复制</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4" />
+                          <span>复制</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <Button
+                    onClick={() => window.open(`/invite/${createdSession.inviteToken}`, '_blank')}
+                    variant="outline"
+                    className="w-full flex items-center justify-center space-x-2"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span>预览邀请页面</span>
+                  </Button>
+                </div>
+              </div>
+
+              {/* 操作按钮 */}
+              <div className="flex justify-between items-center pt-4 border-t">
+                <div className="text-sm text-gray-600">
+                  <p>✅ 邀请邮件已发送给候选人</p>
+                  <p>✅ 邀请链接已生成，有效期7天</p>
+                </div>
+                <div className="flex space-x-3">
+                  <Button
+                    onClick={resetForm}
+                    variant="outline"
+                  >
+                    创建新面试
+                  </Button>
+                  <Button
+                    onClick={() => router.push('/admin/interviews')}
+                  >
+                    查看所有面试
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
