@@ -1,0 +1,202 @@
+name=speckit.init
+# speckit 初始化文件（根据 docs/ 目录调整）
+repo: ryan-vn/ai_interview
+repo_id: 1080331306
+created_by: ryan-vn
+created_at: 2025-10-21T08:19:19Z
+speckit_version: 0.1
+
+# 说明:
+# - 本文件将仓库中的 docs/ 子文件夹和若干关键文件映射为 Speckit 的模块，
+#   以便对文档、工作流和运维说明进行可追踪管理。
+# - 如需推送到仓库，请回复“推送”或“Push”，我会将本文件提交到 speckit/init 分支并打开 PR。
+
+languages:
+  - "TypeScript"
+
+settings:
+  default_branch: "main"
+  create_branch_for_changes: true
+  pr_title_prefix: "[speckit] "
+  reviewer: "ryan-vn"
+
+modules:
+  - name: "docs-index"
+    path: "docs/README.md"
+    type: "documentation"
+    owner: "ryan-vn"
+    labels: ["speckit", "docs", "index"]
+    template: "documentation-index"
+
+  - name: "project-summary"
+    path: "docs/PROJECT_SUMMARY.md"
+    type: "documentation"
+    owner: "ryan-vn"
+    labels: ["speckit", "summary"]
+    template: "project-summary"
+
+  - name: "requirements-index"
+    path: "docs/requirements/README.md"
+    type: "documentation"
+    owner: "ryan-vn"
+    labels: ["speckit", "requirements"]
+    template: "requirements-index"
+
+  - name: "requirements-core"
+    path: "docs/requirements/required.md"
+    type: "documentation"
+    owner: "ryan-vn"
+    labels: ["speckit", "requirements", "core"]
+    template: "requirements-core"
+
+  - name: "requirements-detailed"
+    path: "docs/requirements/requirements_detailed.md"
+    type: "documentation"
+    owner: "ryan-vn"
+    labels: ["speckit", "requirements", "detailed"]
+    template: "requirements-detailed"
+
+  - name: "interview-workflow"
+    path: "INTERVIEW_WORKFLOW.md"
+    type: "workflow"
+    owner: "ryan-vn"
+    labels: ["speckit", "workflow", "interview"]
+    template: "workflow"
+
+  - name: "interview-workflow-requirements"
+    path: "docs/requirements/interview_workflow_requirements.md"
+    type: "workflow"
+    owner: "ryan-vn"
+    labels: ["speckit", "workflow", "requirements"]
+    template: "workflow-requirements"
+
+  - name: "development-guides-index"
+    path: "docs/development/DEVELOPMENT.md"
+    type: "documentation"
+    owner: "ryan-vn"
+    labels: ["speckit", "development"]
+    template: "developer-guide"
+
+  - name: "api-documentation"
+    path: "docs/development/API.md"
+    type: "documentation"
+    owner: "ryan-vn"
+    labels: ["speckit", "api"]
+    template: "api-docs"
+
+  - name: "architecture"
+    path: "docs/development/ARCHITECTURE.md"
+    type: "documentation"
+    owner: "ryan-vn"
+    labels: ["speckit", "architecture"]
+    template: "architecture"
+
+  - name: "deployment-overview"
+    path: "docs/deployment/DEPLOYMENT.md"
+    type: "workflow"
+    owner: "ryan-vn"
+    labels: ["speckit", "deployment"]
+    template: "deployment-playbook"
+
+  - name: "deployment-docker"
+    path: "docs/deployment/DOCKER.md"
+    type: "infrastructure"
+    owner: "ryan-vn"
+    labels: ["speckit", "docker"]
+    template: "docker-guide"
+
+  - name: "deployment-environment"
+    path: "docs/deployment/ENVIRONMENT.md"
+    type: "documentation"
+    owner: "ryan-vn"
+    labels: ["speckit", "deployment", "env"]
+    template: "environment-config"
+
+  - name: "testing-guide"
+    path: "docs/testing/TESTING_GUIDE.md"
+    type: "documentation"
+    owner: "ryan-vn"
+    labels: ["speckit", "testing"]
+    template: "testing-guide"
+
+  - name: "testing-cases"
+    path: "docs/testing/TEST_CASES.md"
+    type: "documentation"
+    owner: "ryan-vn"
+    labels: ["speckit", "testing", "cases"]
+    template: "test-cases"
+
+  - name: "testing-performance"
+    path: "docs/testing/PERFORMANCE.md"
+    type: "documentation"
+    owner: "ryan-vn"
+    labels: ["speckit", "testing", "performance"]
+    template: "performance-report"
+
+  - name: "design-database"
+    path: "docs/design/DATABASE.md"
+    type: "documentation"
+    owner: "ryan-vn"
+    labels: ["speckit", "design", "database"]
+    template: "database-design"
+
+  - name: "design-ui-ux"
+    path: "docs/design/UI_UX.md"
+    type: "documentation"
+    owner: "ryan-vn"
+    labels: ["speckit", "design", "ui-ux"]
+    template: "ui-ux"
+
+  - name: "hr-admin-guide"
+    path: "docs/HR_ADMIN_GUIDE.md"
+    type: "documentation"
+    owner: "ryan-vn"
+    labels: ["speckit", "hr"]
+    template: "guide"
+
+  - name: "invite-link-features"
+    path: "docs/INVITE_LINK_FEATURES.md"
+    type: "documentation"
+    owner: "ryan-vn"
+    labels: ["speckit", "feature"]
+    template: "feature-spec"
+
+  - name: "migration-guide"
+    path: "docs/MIGRATION_GUIDE.md"
+    type: "workflow"
+    owner: "ryan-vn"
+    labels: ["speckit", "migration"]
+    template: "migration-playbook"
+
+  - name: "quick-start"
+    path: "QUICK_START.md"
+    type: "documentation"
+    owner: "ryan-vn"
+    labels: ["speckit", "quickstart"]
+    template: "quickstart"
+
+  - name: "frontend-ci-config"
+    path: "frontend/package.json"
+    type: "build-config"
+    owner: "ryan-vn"
+    labels: ["speckit", "ci", "frontend"]
+    template: "npm-package"
+
+  - name: "backend-ci-config"
+    path: "backend/package.json"
+    type: "build-config"
+    owner: "ryan-vn"
+    labels: ["speckit", "ci", "backend"]
+    template: "npm-package"
+
+  - name: "docker-compose"
+    path: "docker-compose.yml"
+    type: "infrastructure"
+    owner: "ryan-vn"
+    labels: ["speckit", "infrastructure", "docker"]
+    template: "docker-compose"
+
+notes:
+  - "此配置基于 docs/ 目录中现有文件与子目录（如 requirements, development, deployment, testing, design 等）的发现与映射。"
+  - "模块名称、owner 与 labels 可根据团队实际分工再调整（例如把部分文档的 owner 指定为具体子团队或成员）。"
+  - "如果需要合并或拆分模块（例如将多个 testing 文档合并为一个模块），请告知我具体偏好。"
