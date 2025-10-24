@@ -25,6 +25,23 @@
 | `backend/TEST_README.md` | `docs/testing/TEST_README.md` | 测试说明 |
 | `backend/TEST_SUMMARY.md` | `docs/testing/TEST_SUMMARY.md` | 测试总结 |
 | `backend/TESTING_GUIDE.md` | `docs/testing/TESTING_GUIDE.md` | 测试指南 |
+| `backend/SWAGGER_GUIDE.md` | `docs/api/SWAGGER_GUIDE.md` | Swagger API 使用指南 |
+
+### 从 frontend/ 目录复制的文档
+
+| 原路径 | 新路径 | 说明 |
+|--------|--------|------|
+| `frontend/README.md` | `docs/development/FRONTEND.md` | 前端项目说明（原文件保留） |
+
+### 第二批整理：2024-10-21
+
+| 原路径 | 新路径 | 说明 |
+|--------|--------|------|
+| `INTERVIEW_WORKFLOW.md` | `docs/guides/INTERVIEW_WORKFLOW.md` | 面试流程说明 |
+| `QUICK_START.md` | `docs/QUICK_START.md` | 快速启动指南 |
+| `HR_ADMIN_GUIDE.md` | `docs/guides/HR_ADMIN_GUIDE.md` | HR 管理员指南 |
+| `HR_FEATURES.md` | `docs/requirements/HR_FEATURES.md` | HR 功能需求 |
+| `INVITE_LINK_FEATURES.md` | `docs/requirements/INVITE_LINK_FEATURES.md` | 邀请链接功能需求 |
 
 ### 保持不变的文档
 
@@ -36,30 +53,53 @@
 
 | 文件路径 | 说明 |
 |---------|------|
-| `docs/README.md` | 文档索引和导航 |
-| `docs/MIGRATION_GUIDE.md` | 本文档迁移指南 |
+| `docs/README.md` | 文档索引和导航（已更新） |
+| `docs/MIGRATION_GUIDE.md` | 本文档迁移指南（已更新） |
+| `docs/QUICK_START.md` | 快速启动指南 |
+| `docs/api/` | API 文档目录（新建） |
+| `docs/guides/` | 使用指南目录（新建） |
 
 ## 目录结构
 
 ```
 docs/
-├── README.md                    # 📋 文档索引
-├── PROJECT_SUMMARY.md           # 📊 项目总结
-├── MIGRATION_GUIDE.md           # 🔄 迁移指南
-├── requirements/                # 📝 需求文档
-│   ├── required.md
-│   └── requirements_detailed.md
-├── development/                 # 💻 开发文档
-│   └── DEVELOPMENT.md
-├── deployment/                  # 🚀 部署文档
-│   └── DEPLOYMENT.md
-├── design/                      # 🎨 设计文档
-│   └── ui-design-system.md
-└── testing/                     # 🧪 测试文档
-    ├── TESTING_GUIDE.md
-    ├── TEST_README.md
-    ├── TEST_CASES.md
-    └── TEST_SUMMARY.md
+├── README.md                               # 📋 文档索引（已更新）
+├── PROJECT_SUMMARY.md                      # 📊 项目总结
+├── MIGRATION_GUIDE.md                      # 🔄 迁移指南（已更新）
+├── QUICK_START.md                          # 🚀 快速启动指南
+│
+├── requirements/                           # 📝 需求文档
+│   ├── README.md                          # 需求文档索引
+│   ├── required.md                        # 基础需求
+│   ├── requirements_detailed.md           # 详细需求
+│   ├── interview_workflow_requirements.md # 面试流程需求
+│   ├── HR_FEATURES.md                     # HR 功能需求
+│   └── INVITE_LINK_FEATURES.md            # 邀请链接功能
+│
+├── development/                            # 💻 开发文档
+│   ├── DEVELOPMENT.md                     # 开发指南
+│   └── FRONTEND.md                        # 前端项目说明
+│
+├── deployment/                             # 🚀 部署文档
+│   ├── DEPLOYMENT.md                      # 部署指南
+│   ├── DATABASE_CHARSET_FIX.md            # 数据库字符集修复
+│   └── CHARSET_FIX_SUMMARY.md             # 字符集修复总结
+│
+├── design/                                 # 🎨 设计文档
+│   └── ui-design-system.md                # UI 设计系统
+│
+├── testing/                                # 🧪 测试文档
+│   ├── TESTING_GUIDE.md                   # 测试指南
+│   ├── TEST_README.md                     # 测试说明
+│   ├── TEST_CASES.md                      # 测试用例
+│   └── TEST_SUMMARY.md                    # 测试总结
+│
+├── guides/                                 # 📖 使用指南（新建）
+│   ├── INTERVIEW_WORKFLOW.md              # 面试流程说明
+│   └── HR_ADMIN_GUIDE.md                  # HR 管理员指南
+│
+└── api/                                    # 🔌 API 文档（新建）
+    └── SWAGGER_GUIDE.md                   # Swagger 使用指南
 ```
 
 ## 更新说明

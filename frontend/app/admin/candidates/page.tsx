@@ -41,10 +41,48 @@ export default function CandidatesPage() {
 
   const loadCandidates = async () => {
     try {
+      // 从后端获取已有面试的候选人
       const response = await interviewsApi.getCandidates();
-      setCandidates(response.data);
+      const interviewCandidates = response.data || [];
+      
+      // 从本地存储获取候选人池
+      const candidatesPool = JSON.parse(localStorage.getItem('candidatesPool') || '[]');
+      
+      // 合并候选人数据：候选人池中的候选人如果还没有面试记录，添加到列表中
+      const mergedCandidates = [...interviewCandidates];
+      
+      candidatesPool.forEach((poolCandidate: any) => {
+        const exists = interviewCandidates.find((c: any) => c.email === poolCandidate.email);
+        if (!exists) {
+          mergedCandidates.push({
+            name: poolCandidate.name,
+            email: poolCandidate.email,
+            phone: poolCandidate.phone,
+            position: poolCandidate.position,
+            interviewCount: 0,
+            firstInterviewDate: poolCandidate.createdAt,
+            lastInterviewDate: poolCandidate.createdAt,
+            isFromPool: true,
+          });
+        }
+      });
+      
+      setCandidates(mergedCandidates);
     } catch (error) {
       console.error('Failed to load candidates:', error);
+      // 如果API失败，至少显示候选人池中的数据
+      const candidatesPool = JSON.parse(localStorage.getItem('candidatesPool') || '[]');
+      const poolCandidates = candidatesPool.map((c: any) => ({
+        name: c.name,
+        email: c.email,
+        phone: c.phone,
+        position: c.position,
+        interviewCount: 0,
+        firstInterviewDate: c.createdAt,
+        lastInterviewDate: c.createdAt,
+        isFromPool: true,
+      }));
+      setCandidates(poolCandidates);
     } finally {
       setLoading(false);
     }
@@ -77,13 +115,23 @@ export default function CandidatesPage() {
               <h1 className="text-3xl font-bold text-gray-900">候选人管理</h1>
               <p className="text-gray-600 mt-2">管理所有候选人信息和面试记录</p>
             </div>
-            <Button 
-              onClick={() => window.location.href = '/admin/interviews/create'}
-              className="flex items-center space-x-2"
-            >
-              <Plus className="h-4 w-4" />
-              <span>创建面试</span>
-            </Button>
+            <div className="flex space-x-3">
+              <Button 
+                onClick={() => window.location.href = '/admin/candidates/create'}
+                className="flex items-center space-x-2"
+                variant="outline"
+              >
+                <UserPlus className="h-4 w-4" />
+                <span>录入候选人</span>
+              </Button>
+              <Button 
+                onClick={() => window.location.href = '/admin/interviews/create'}
+                className="flex items-center space-x-2"
+              >
+                <Plus className="h-4 w-4" />
+                <span>创建面试</span>
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -174,10 +222,20 @@ export default function CandidatesPage() {
                 <div className="text-center py-8">
                   <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">暂无候选人数据</h3>
-                  <p className="text-gray-600 mb-4">开始创建面试场次来添加候选人</p>
-                  <Button onClick={() => window.location.href = '/admin/interviews/create'}>
-                    创建面试
-                  </Button>
+                  <p className="text-gray-600 mb-4">您可以先录入候选人信息，或直接创建面试</p>
+                  <div className="flex justify-center space-x-3">
+                    <Button 
+                      variant="outline"
+                      onClick={() => window.location.href = '/admin/candidates/create'}
+                    >
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      录入候选人
+                    </Button>
+                    <Button onClick={() => window.location.href = '/admin/interviews/create'}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      创建面试
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -212,9 +270,16 @@ export default function CandidatesPage() {
                             )}
                           </div>
                         </div>
-                        <Badge variant="secondary">
-                          {candidate.interviewCount} 次面试
-                        </Badge>
+                        <div className="flex gap-2">
+                          {(candidate as any).isFromPool && candidate.interviewCount === 0 && (
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                              候选人池
+                            </Badge>
+                          )}
+                          <Badge variant="secondary">
+                            {candidate.interviewCount} 次面试
+                          </Badge>
+                        </div>
                       </div>
 
                       {/* 面试统计 */}
