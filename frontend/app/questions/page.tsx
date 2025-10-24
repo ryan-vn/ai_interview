@@ -37,9 +37,23 @@ export default function QuestionsPage() {
       if (difficultyFilter !== 'all') params.difficulty = difficultyFilter;
       
       const response = await questionsApi.getAll(params);
-      setQuestions(response.data || []);
+      console.log('Questions API response:', response.data);
+      
+      // Handle the response structure
+      const responseData = response.data;
+      if (responseData && typeof responseData === 'object') {
+        // Check if data is directly the array or nested
+        const questionsData = Array.isArray(responseData) 
+          ? responseData 
+          : (Array.isArray(responseData.data) ? responseData.data : []);
+        
+        setQuestions(questionsData);
+      } else {
+        setQuestions([]);
+      }
     } catch (error) {
       console.error("加载题目失败:", error);
+      setQuestions([]); // Ensure questions is always an array even on error
     } finally {
       setLoading(false);
     }

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import api from '@/lib/api';
+import { api } from '@/lib/api';
 import { useParams } from 'next/navigation';
 
 interface Resume {

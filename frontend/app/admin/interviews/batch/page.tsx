@@ -16,7 +16,7 @@ import {
   XCircle,
   AlertCircle
 } from 'lucide-react';
-import { interviewsApi } from '@/lib/api';
+import { interviewsApi, usersApi } from '@/lib/api';
 
 interface CandidateInfo {
   name: string;
@@ -87,11 +87,18 @@ export default function BatchCreateInterviewsPage() {
 
   const fetchInterviewers = async () => {
     try {
-      const response = await fetch('/api/users?role=interviewer');
-      const data = await response.json();
-      setInterviewers(data);
+      const response = await usersApi.getAll({ role: 'interviewer' });
+      console.log('Interviewers API response:', response.data);
+      
+      // Handle the response structure - data might be directly an array or nested
+      const interviewersData = Array.isArray(response.data) 
+        ? response.data 
+        : (Array.isArray(response.data?.data) ? response.data.data : []);
+      
+      setInterviewers(interviewersData);
     } catch (error) {
       console.error('获取面试官失败:', error);
+      setInterviewers([]); // Ensure it's always an array
     }
   };
 
@@ -183,7 +190,7 @@ export default function BatchCreateInterviewsPage() {
         alert(`创建完成：成功 ${response.data.created} 个，失败 ${response.data.failed} 个`);
       }
     } catch (error: any) {
-      alert(error.response?.data?.message || '批量创建失败，请重试');
+      alert(error.message || '批量创建失败，请重试');
     } finally {
       setLoading(false);
     }

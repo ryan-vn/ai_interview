@@ -27,11 +27,26 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  async findAll(): Promise<User[]> {
-    return this.usersRepository.find({
-      relations: ['role'],
-      select: ['id', 'username', 'email', 'avatar', 'isActive', 'createdAt'],
-    });
+  async findAll(roleName?: string): Promise<User[]> {
+    const queryBuilder = this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.role', 'role')
+      .select([
+        'user.id',
+        'user.username',
+        'user.email',
+        'user.avatar',
+        'user.isActive',
+        'user.createdAt',
+        'role.id',
+        'role.name',
+      ]);
+
+    if (roleName) {
+      queryBuilder.andWhere('role.name = :roleName', { roleName });
+    }
+
+    return queryBuilder.getMany();
   }
 
   async findOne(id: number): Promise<User> {

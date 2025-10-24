@@ -106,30 +106,166 @@ CREATE TABLE IF NOT EXISTS `match_results` (
   FOREIGN KEY (`job_id`) REFERENCES `jobs`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='匹配结果表';
 
--- 5. 修改题目表 (questions) - 添加新字段
-ALTER TABLE `questions` 
-  ADD COLUMN IF NOT EXISTS `tag_ids` JSON NULL COMMENT '标签ID列表（JSON数组）' AFTER `tags`,
-  ADD COLUMN IF NOT EXISTS `standard_answer` TEXT NULL COMMENT '标准答案（用于QA/行为题）' AFTER `memory_limit`,
-  ADD COLUMN IF NOT EXISTS `answer_points` JSON NULL COMMENT '答案要点（JSON数组）' AFTER `standard_answer`,
-  ADD COLUMN IF NOT EXISTS `is_deleted` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否已删除' AFTER `answer_points`;
+-- 5. 修改题目表 (questions) - 添加新字段（使用动态SQL）
+SET @dbname = DATABASE();
+SET @tablename = "questions";
+SET @columnname = "tag_ids";
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  "SELECT 1",
+  CONCAT("ALTER TABLE ", @tablename, " ADD COLUMN ", @columnname, " JSON NULL COMMENT '标签ID列表（JSON数组）' AFTER `tags`")
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = "standard_answer";
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  "SELECT 1",
+  CONCAT("ALTER TABLE ", @tablename, " ADD COLUMN ", @columnname, " TEXT NULL COMMENT '标准答案（用于QA/行为题）' AFTER `memory_limit`")
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = "answer_points";
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  "SELECT 1",
+  CONCAT("ALTER TABLE ", @tablename, " ADD COLUMN ", @columnname, " JSON NULL COMMENT '答案要点（JSON数组）' AFTER `standard_answer`")
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @columnname = "is_deleted";
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  "SELECT 1",
+  CONCAT("ALTER TABLE ", @tablename, " ADD COLUMN ", @columnname, " TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否已删除' AFTER `answer_points`")
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- 修改题目类型枚举，添加新类型
 ALTER TABLE `questions` 
   MODIFY COLUMN `type` ENUM('programming', 'qa', 'behavioral', 'technical_qa') NOT NULL COMMENT '题目类型';
 
 -- 添加索引
-ALTER TABLE `questions` 
-  ADD INDEX IF NOT EXISTS `idx_is_deleted` (`is_deleted`);
+SET @index_exists = (
+  SELECT COUNT(*) 
+  FROM information_schema.STATISTICS 
+  WHERE TABLE_SCHEMA = DATABASE() 
+    AND TABLE_NAME = 'questions' 
+    AND INDEX_NAME = 'idx_is_deleted'
+);
+
+SET @sql_add_index = IF(
+  @index_exists = 0,
+  'ALTER TABLE `questions` ADD INDEX `idx_is_deleted` (`is_deleted`)',
+  'SELECT "Index already exists" AS message'
+);
+
+PREPARE stmt FROM @sql_add_index;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- 6. 修改面试场次表 (interview_sessions) - 添加关联字段
-ALTER TABLE `interview_sessions` 
-  ADD COLUMN IF NOT EXISTS `job_id` INT NULL COMMENT '关联岗位ID' AFTER `position`,
-  ADD COLUMN IF NOT EXISTS `resume_id` INT NULL COMMENT '关联简历ID' AFTER `job_id`;
+SET @tablename = "interview_sessions";
+SET @columnname = "job_id";
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  "SELECT 1",
+  CONCAT("ALTER TABLE ", @tablename, " ADD COLUMN ", @columnname, " INT NULL COMMENT '关联岗位ID' AFTER `position`")
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
--- 添加外键和索引
-ALTER TABLE `interview_sessions` 
-  ADD INDEX IF NOT EXISTS `idx_job_id` (`job_id`),
-  ADD INDEX IF NOT EXISTS `idx_resume_id` (`resume_id`);
+SET @columnname = "resume_id";
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  "SELECT 1",
+  CONCAT("ALTER TABLE ", @tablename, " ADD COLUMN ", @columnname, " INT NULL COMMENT '关联简历ID' AFTER `job_id`")
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- 添加索引
+SET @index_exists = (
+  SELECT COUNT(*) 
+  FROM information_schema.STATISTICS 
+  WHERE TABLE_SCHEMA = DATABASE() 
+    AND TABLE_NAME = 'interview_sessions' 
+    AND INDEX_NAME = 'idx_job_id'
+);
+
+SET @sql_add_index = IF(
+  @index_exists = 0,
+  'ALTER TABLE `interview_sessions` ADD INDEX `idx_job_id` (`job_id`)',
+  'SELECT "Index already exists" AS message'
+);
+
+PREPARE stmt FROM @sql_add_index;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @index_exists = (
+  SELECT COUNT(*) 
+  FROM information_schema.STATISTICS 
+  WHERE TABLE_SCHEMA = DATABASE() 
+    AND TABLE_NAME = 'interview_sessions' 
+    AND INDEX_NAME = 'idx_resume_id'
+);
+
+SET @sql_add_index = IF(
+  @index_exists = 0,
+  'ALTER TABLE `interview_sessions` ADD INDEX `idx_resume_id` (`resume_id`)',
+  'SELECT "Index already exists" AS message'
+);
+
+PREPARE stmt FROM @sql_add_index;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- 添加外键约束（如果不存在）
 SET @fk_job_exists = (

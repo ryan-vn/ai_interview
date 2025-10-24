@@ -9,8 +9,9 @@ import {
   UseGuards,
   ClassSerializerInterceptor,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -36,8 +37,13 @@ export class UsersController {
   @Get()
   @Roles('admin', 'interviewer')
   @ApiOperation({ summary: '获取所有用户' })
-  findAll() {
-    return this.usersService.findAll();
+  @ApiQuery({
+    name: 'role',
+    required: false,
+    description: '按角色筛选用户（例如：interviewer, candidate, admin）',
+  })
+  findAll(@Query('role') role?: string) {
+    return this.usersService.findAll(role);
   }
 
   @Get('roles')

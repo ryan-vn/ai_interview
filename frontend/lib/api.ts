@@ -1,6 +1,15 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+// 统一响应数据结构
+export interface ApiResponse<T = any> {
+  code: number;
+  message: string;
+  data: T;
+  errors?: any;
+  timestamp: number;
+}
 
 export const api = axios.create({
   baseURL: `${API_URL}/api`,
@@ -23,16 +32,51 @@ api.interceptors.request.use(
   }
 );
 
-// 响应拦截器 - 处理错误
+// 响应拦截器 - 统一处理返回数据
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // 未授权，清除 token 并跳转到登录页
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+  (response) => {
+    // 后端已经返回统一格式: { code, message, data, timestamp }
+    const apiResponse = response.data as ApiResponse;
+    
+    // 如果 code 为 0，表示成功，直接返回 data 部分
+    if (apiResponse.code === 0) {
+      // 将 data 部分放到 response.data，方便业务代码直接使用
+      response.data = apiResponse.data;
+      return response;
     }
+    
+    // 如果 code 不为 0，表示业务错误，抛出错误
+    const error: any = new Error(apiResponse.message || 'Request failed');
+    error.code = apiResponse.code;
+    error.apiResponse = apiResponse;
     return Promise.reject(error);
+  },
+  (error: AxiosError) => {
+    // 处理 HTTP 错误
+    if (error.response) {
+      const apiResponse = error.response.data as ApiResponse;
+      
+      // 401 未授权，清除 token 并跳转到登录页
+      if (error.response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+      
+      // 包装错误信息
+      const enhancedError: any = new Error(
+        apiResponse?.message || '请求失败，请稍后重试'
+      );
+      enhancedError.code = apiResponse?.code || error.response.status;
+      enhancedError.errors = apiResponse?.errors;
+      enhancedError.status = error.response.status;
+      
+      return Promise.reject(enhancedError);
+    }
+    
+    // 网络错误或其他错误
+    const networkError: any = new Error('网络错误，请检查您的网络连接');
+    networkError.code = -1;
+    return Promise.reject(networkError);
   }
 );
 
@@ -45,13 +89,44 @@ export const authApi = {
   getProfile: () => api.get('/auth/profile'),
 };
 
+export const usersApi = {
+  getAll: (params?: { role?: string; page?: number; limit?: number }) =>
+    api.get('/users', { params }),
+  getOne: (id: number) => api.get(`/users/${id}`),
+  create: (data: any) => api.post('/users', data),
+  update: (id: number, data: any) => api.patch(`/users/${id}`, data),
+  delete: (id: number) => api.delete(`/users/${id}`),
+};
+
 export const questionsApi = {
-  getAll: (params?: { type?: string; difficulty?: string }) =>
+  getAll: (params?: { page?: number; limit?: number; type?: string; difficulty?: string; tags?: string; keyword?: string }) =>
     api.get('/questions', { params }),
   getOne: (id: number) => api.get(`/questions/${id}`),
   create: (data: any) => api.post('/questions', data),
   update: (id: number, data: any) => api.patch(`/questions/${id}`, data),
   delete: (id: number) => api.delete(`/questions/${id}`),
+  batchDelete: (ids: number[]) => api.post('/questions/batch-delete', { ids }),
+  importJson: (data: any) => api.post('/questions/import', data),
+  importFile: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/questions/import/file', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  getStatistics: () => api.get('/questions/statistics'),
+};
+
+export const tagsApi = {
+  getAll: (params?: { category?: string; parentId?: number }) =>
+    api.get('/question-tags', { params }),
+  getTree: () => api.get('/question-tags/tree'),
+  getOne: (id: number) => api.get(`/question-tags/${id}`),
+  create: (data: any) => api.post('/question-tags', data),
+  update: (id: number, data: any) => api.patch(`/question-tags/${id}`, data),
+  delete: (id: number) => api.delete(`/question-tags/${id}`),
 };
 
 export const interviewsApi = {

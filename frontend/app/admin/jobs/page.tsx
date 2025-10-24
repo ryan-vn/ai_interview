@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import api from '@/lib/api';
+import {api} from '@/lib/api';
 
 interface Job {
   id: number;
@@ -149,7 +149,7 @@ export default function JobsPage() {
       loadDepartments();
     } catch (error: any) {
       console.error('创建岗位失败:', error);
-      alert(error.response?.data?.message || '创建岗位失败');
+      alert(error.message || '创建岗位失败');
     }
   };
 
@@ -161,7 +161,7 @@ export default function JobsPage() {
       loadJobs();
     } catch (error: any) {
       console.error('删除岗位失败:', error);
-      alert(error.response?.data?.message || '删除岗位失败');
+      alert(error.message || '删除岗位失败');
     }
   };
 
@@ -173,7 +173,7 @@ export default function JobsPage() {
       loadJobs();
     } catch (error: any) {
       console.error('修改状态失败:', error);
-      alert(error.response?.data?.message || '修改状态失败');
+      alert(error.message || '修改状态失败');
     }
   };
 

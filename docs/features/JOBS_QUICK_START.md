@@ -273,10 +273,10 @@ curl -X GET "http://localhost:3001/api/jobs?keyword=React&status=open" \
 ## 📚 深入学习
 
 ### 详细文档
-- [API完整文档](docs/api/JOBS_API.md)
-- [测试指南](docs/testing/JOBS_TESTING_GUIDE.md)
-- [功能说明](docs/features/JOBS_FEATURE.md)
-- [实现总结](JOBS_IMPLEMENTATION_SUMMARY.md)
+- [API完整文档](../api/JOBS_API.md)
+- [测试指南](../testing/JOBS_TESTING_GUIDE.md)
+- [功能说明](./JOBS_FEATURE.md)
+- [实现总结](./JOBS_IMPLEMENTATION_SUMMARY.md)
 
 ### 代码位置
 - 后端: `backend/src/jobs/`

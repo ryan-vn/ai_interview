@@ -58,7 +58,33 @@ git clone <repository-url>
 cd interview
 ```
 
-#### 2. 启动 Docker 服务
+#### 2. 本地开发模式（推荐）⭐
+
+前端和后端在本地运行，数据库和 Redis 使用 Docker：
+
+```bash
+# 一键启动数据库和 Redis
+./dev.sh
+
+# 启动后端（新终端）
+cd backend && pnpm run start:dev
+
+# 启动前端（新终端）
+cd frontend && pnpm run dev
+```
+
+**优势：**
+- ⚡️ 热重载速度极快
+- 🐛 IDE 调试更方便
+- 💚 资源占用更低
+- 🚀 启动速度更快
+
+**详细说明：** 查看 [本地开发指南](docs/development/LOCAL_DEV_GUIDE.md) 和 [开发模式对比](docs/development/DEV_MODES.md)
+
+#### 3. 完整 Docker 模式
+
+所有服务都在 Docker 中运行（适合测试部署）：
+
 ```bash
 # 启动所有服务
 docker-compose up -d
@@ -68,26 +94,6 @@ docker-compose logs -f
 
 # 停止服务
 docker-compose down
-```
-
-#### 3. 本地开发（不使用 Docker）
-
-**后端开发**:
-```bash
-cd backend
-pnpm install
-cp .env.example .env
-# 修改 .env 配置
-pnpm run start:dev
-```
-
-**前端开发**:
-```bash
-cd frontend
-pnpm install
-cp .env.example .env.local
-# 修改 .env.local 配置
-pnpm dev
 ```
 
 ### 访问地址
@@ -185,7 +191,12 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 
 完整的项目文档已整理至 `docs/` 目录，包括：
 
-- **[文档索引](docs/README.md)** - 查看所有文档的导航
+### 快速开始
+- **[本地开发快速指南](docs/development/DEV_QUICK_START.md)** ⭐ - 最快的开发环境配置方式
+- **[本地开发完整指南](docs/development/LOCAL_DEV_GUIDE.md)** - 详细的本地开发说明
+- **[开发模式对比](docs/development/DEV_MODES.md)** - 不同开发模式的对比和选择
+
+### 完整文档
 - **[需求文档](docs/requirements/)** - 功能需求和规格说明
 - **[开发指南](docs/development/DEVELOPMENT.md)** - 开发环境配置和开发流程
 - **[部署文档](docs/deployment/DEPLOYMENT.md)** - 生产环境部署指南

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar, Clock, User, Mail, Phone, Briefcase, Users, Copy, ExternalLink, CheckCircle, Link } from 'lucide-react';
 import { format } from 'date-fns';
-import { interviewsApi } from '@/lib/api';
+import { interviewsApi, usersApi } from '@/lib/api';
 
 interface Template {
   id: number;
@@ -70,11 +70,18 @@ export default function CreateInterviewPage() {
 
   const fetchInterviewers = async () => {
     try {
-      const response = await fetch('/api/users?role=interviewer');
-      const data = await response.json();
-      setInterviewers(data);
+      const response = await usersApi.getAll({ role: 'interviewer' });
+      console.log('Interviewers API response:', response.data);
+      
+      // Handle the response structure - data might be directly an array or nested
+      const interviewersData = Array.isArray(response.data) 
+        ? response.data 
+        : (Array.isArray(response.data?.data) ? response.data.data : []);
+      
+      setInterviewers(interviewersData);
     } catch (error) {
       console.error('获取面试官失败:', error);
+      setInterviewers([]); // Ensure it's always an array
     }
   };
 
@@ -140,7 +147,7 @@ export default function CreateInterviewPage() {
       setCreatedSession(response.data);
       setShowSuccess(true);
     } catch (error: any) {
-      alert(error.response?.data?.message || '创建失败，请重试');
+      alert(error.message || '创建失败，请重试');
     } finally {
       setLoading(false);
     }

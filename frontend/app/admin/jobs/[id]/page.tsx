@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import api from '@/lib/api';
+import { api } from '@/lib/api';
 
 interface Job {
   id: number;
@@ -70,7 +70,7 @@ export default function EditJobPage() {
       });
     } catch (error: any) {
       console.error('加载岗位失败:', error);
-      alert(error.response?.data?.message || '加载岗位失败');
+      alert(error.message || '加载岗位失败');
       router.push('/admin/jobs');
     } finally {
       setLoading(false);
@@ -112,7 +112,7 @@ export default function EditJobPage() {
       router.push('/admin/jobs');
     } catch (error: any) {
       console.error('保存岗位失败:', error);
-      alert(error.response?.data?.message || '保存岗位失败');
+      alert(error.message || '保存岗位失败');
     } finally {
       setSaving(false);
     }

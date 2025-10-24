@@ -10,6 +10,7 @@ import { ReportsModule } from './reports/reports.module';
 import { JobsModule } from './jobs/jobs.module';
 import { ResumesModule } from './resumes/resumes.module';
 import { MatchingModule } from './matching/matching.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -31,7 +32,7 @@ import { MatchingModule } from './matching/matching.module';
         database: configService.get('DATABASE_NAME', 'interview_system'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: false, // 生产环境应该设为 false
-        logging: configService.get('NODE_ENV') === 'development',
+        // logging: configService.get('NODE_ENV') === 'development',
         charset: 'utf8mb4',
         timezone: '+08:00',
         extra: {
@@ -52,6 +53,7 @@ import { MatchingModule } from './matching/matching.module';
     SubmissionsModule,
     ReportsModule,
     MatchingModule,
+    AiModule,
   ],
 })
 export class AppModule {}

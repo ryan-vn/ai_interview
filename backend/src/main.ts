@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,6 +22,12 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  // 全局响应拦截器 - 统一返回格式
+  app.useGlobalInterceptors(new TransformInterceptor());
+
+  // 全局异常过滤器 - 统一错误格式
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   // 全局前缀
   app.setGlobalPrefix('api');
