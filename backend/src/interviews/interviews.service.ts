@@ -38,7 +38,9 @@ export class InterviewsService {
       candidateName: createDto.candidateInfo.name,
       candidateEmail: createDto.candidateInfo.email,
       candidatePhone: createDto.candidateInfo.phone,
-      position: createDto.candidateInfo.position,
+      position: createDto.candidateInfo.position || createDto.candidateInfo.jobId ? undefined : undefined,
+      jobId: createDto.jobId || createDto.candidateInfo.jobId,
+      resumeId: createDto.resumeId || createDto.candidateInfo.resumeId,
       inviteToken,
       inviteExpiresAt,
       // 候选人ID暂时为空，等候选人通过邀请链接注册后关联
@@ -94,7 +96,9 @@ export class InterviewsService {
       .createQueryBuilder('session')
       .leftJoinAndSelect('session.template', 'template')
       .leftJoinAndSelect('session.candidate', 'candidate')
-      .leftJoinAndSelect('session.interviewer', 'interviewer');
+      .leftJoinAndSelect('session.interviewer', 'interviewer')
+      .leftJoinAndSelect('session.job', 'job')
+      .leftJoinAndSelect('session.resume', 'resume');
 
     if (role === 'candidate' && userId) {
       queryBuilder.where('session.candidateId = :userId', { userId });

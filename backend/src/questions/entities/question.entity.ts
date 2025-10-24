@@ -15,6 +15,8 @@ import { Submission } from '../../submissions/entities/submission.entity';
 export enum QuestionType {
   PROGRAMMING = 'programming',
   QA = 'qa',
+  BEHAVIORAL = 'behavioral',
+  TECHNICAL_QA = 'technical_qa',
 }
 
 export enum QuestionDifficulty {
@@ -52,9 +54,13 @@ export class Question {
   })
   difficulty: QuestionDifficulty;
 
-  @ApiProperty({ description: '标签', type: [String], example: ['数组', '哈希表'] })
+  @ApiProperty({ description: '标签（兼容旧数据）', type: [String], example: ['数组', '哈希表'] })
   @Column({ type: 'json', nullable: true })
   tags: string[];
+
+  @ApiProperty({ description: '标签ID列表', type: [Number], example: [1, 2, 3] })
+  @Column({ name: 'tag_ids', type: 'json', nullable: true })
+  tagIds: number[];
 
   @ApiProperty({ description: '支持的编程语言', type: [String], example: ['javascript', 'python'] })
   @Column({ name: 'language_options', type: 'json', nullable: true })
@@ -75,6 +81,18 @@ export class Question {
   @ApiProperty({ description: '内存限制（MB）', example: 256 })
   @Column({ name: 'memory_limit', default: 256 })
   memoryLimit: number;
+
+  @ApiProperty({ description: '标准答案（用于QA/行为题）', required: false })
+  @Column({ name: 'standard_answer', type: 'text', nullable: true })
+  standardAnswer: string;
+
+  @ApiProperty({ description: '答案要点（JSON数组）', type: [String], required: false })
+  @Column({ name: 'answer_points', type: 'json', nullable: true })
+  answerPoints: string[];
+
+  @ApiProperty({ description: '是否已删除', example: false })
+  @Column({ name: 'is_deleted', default: false })
+  isDeleted: boolean;
 
   @ApiProperty({ description: '创建者ID', example: 1 })
   @Column({ name: 'created_by', nullable: true })

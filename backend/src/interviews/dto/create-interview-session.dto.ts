@@ -22,6 +22,16 @@ export class CandidateInfoDto {
   @IsString()
   @IsOptional()
   position?: string;
+
+  @ApiProperty({ description: '关联岗位ID', example: 1, required: false })
+  @IsNumber()
+  @IsOptional()
+  jobId?: number;
+
+  @ApiProperty({ description: '关联简历ID', example: 1, required: false })
+  @IsNumber()
+  @IsOptional()
+  resumeId?: number;
 }
 
 export class InterviewSettingsDto {
@@ -72,5 +82,15 @@ export class CreateInterviewSessionDto {
   @Type(() => InterviewSettingsDto)
   @IsOptional()
   settings?: InterviewSettingsDto;
+
+  @ApiProperty({ description: '关联岗位ID', example: 1, required: false })
+  @IsNumber()
+  @IsOptional()
+  jobId?: number;
+
+  @ApiProperty({ description: '关联简历ID', example: 1, required: false })
+  @IsNumber()
+  @IsOptional()
+  resumeId?: number;
 }
 

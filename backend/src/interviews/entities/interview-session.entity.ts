@@ -14,6 +14,8 @@ import { User } from '../../users/entities/user.entity';
 import { Template } from './template.entity';
 import { Submission } from '../../submissions/entities/submission.entity';
 import { InterviewReport } from '../../reports/entities/interview-report.entity';
+import { Job } from '../../jobs/entities/job.entity';
+import { Resume } from '../../resumes/entities/resume.entity';
 
 export enum InterviewStatus {
   SCHEDULED = 'scheduled',
@@ -65,6 +67,24 @@ export class InterviewSession {
   @ApiProperty({ description: '应聘职位', example: '前端开发工程师', required: false })
   @Column({ name: 'position', length: 100, nullable: true })
   position: string;
+
+  @ApiProperty({ description: '关联岗位ID', example: 1, required: false })
+  @Column({ name: 'job_id', nullable: true })
+  jobId: number;
+
+  @ApiProperty({ description: '关联岗位', type: () => Job, required: false })
+  @ManyToOne(() => Job, { nullable: true })
+  @JoinColumn({ name: 'job_id' })
+  job: Job;
+
+  @ApiProperty({ description: '关联简历ID', example: 1, required: false })
+  @Column({ name: 'resume_id', nullable: true })
+  resumeId: number;
+
+  @ApiProperty({ description: '关联简历', type: () => Resume, required: false })
+  @ManyToOne(() => Resume, { nullable: true })
+  @JoinColumn({ name: 'resume_id' })
+  resume: Resume;
 
   @ApiProperty({ description: '面试邀请链接', example: 'https://interview.example.com/invite/abc123' })
   @Column({ name: 'invite_token', length: 255, unique: true })

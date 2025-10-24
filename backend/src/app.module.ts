@@ -7,6 +7,9 @@ import { QuestionsModule } from './questions/questions.module';
 import { InterviewsModule } from './interviews/interviews.module';
 import { SubmissionsModule } from './submissions/submissions.module';
 import { ReportsModule } from './reports/reports.module';
+import { JobsModule } from './jobs/jobs.module';
+import { ResumesModule } from './resumes/resumes.module';
+import { MatchingModule } from './matching/matching.module';
 
 @Module({
   imports: [
@@ -42,10 +45,13 @@ import { ReportsModule } from './reports/reports.module';
     // 业务模块
     AuthModule,
     UsersModule,
+    JobsModule,
+    ResumesModule,
     QuestionsModule,
     InterviewsModule,
     SubmissionsModule,
     ReportsModule,
+    MatchingModule,
   ],
 })
 export class AppModule {}
