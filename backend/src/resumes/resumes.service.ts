@@ -209,8 +209,14 @@ export class ResumesService {
 
     for (const file of files) {
       try {
-        const resume = await this.uploadResume(file, jobId, userId);
-        success.push(resume);
+        // 批量上传时不启用多简历检测
+        const resume = await this.uploadResume(file, jobId, userId, false);
+        // 如果是单个简历，添加到成功列表
+        if (Array.isArray(resume)) {
+          success.push(...resume);
+        } else {
+          success.push(resume);
+        }
       } catch (error) {
         failed.push({
           fileName: file.originalname,
@@ -351,7 +357,8 @@ export class ResumesService {
     file: Express.Multer.File,
     jobId: number | undefined,
     userId: number,
-  ): Promise<Resume> {
+    enableMultiDetection: boolean = false,
+  ): Promise<Resume | Resume[]> {
     if (!file) {
       throw new BadRequestException('请上传文件');
     }
@@ -406,8 +413,8 @@ export class ResumesService {
       { fileName: file.originalname, fileSize: file.size },
     );
 
-    // 异步解析简历
-    this.parseResumeAsync(savedResume.id, file.path, userId);
+    // 异步解析简历（支持多简历检测）
+    this.parseResumeAsync(savedResume.id, file.path, userId, enableMultiDetection, jobId);
 
     return savedResume;
   }
@@ -416,6 +423,8 @@ export class ResumesService {
     resumeId: number,
     filePath: string,
     userId?: number,
+    enableMultiDetection: boolean = false,
+    jobId?: number,
   ) {
     try {
       const resume = await this.resumesRepository.findOne({
@@ -424,7 +433,7 @@ export class ResumesService {
 
       if (!resume) return;
 
-      // 使用AI解析简历
+      // 使用AI解析简历（支持多简历检测）
       setTimeout(async () => {
         try {
           // 确保原始文件存在
@@ -432,6 +441,29 @@ export class ResumesService {
             throw new Error('原始文件不存在');
           }
 
+          // 如果启用多简历检测
+          if (enableMultiDetection) {
+            const multiResult = await this.aiService.detectAndParseMultipleResumes(filePath);
+            
+            if (multiResult.isMultiple && multiResult.resumes.length > 1) {
+              // 检测到多个简历，创建多条记录
+              await this.handleMultipleResumes(
+                resumeId,
+                multiResult.resumes,
+                filePath,
+                jobId,
+                userId,
+              );
+              return;
+            }
+            
+            // 单个简历，使用第一个解析结果
+            const parsed = multiResult.resumes[0] || await this.aiService.parseResume(filePath);
+            await this.updateResumeWithParsedData(resumeId, parsed, userId);
+            return;
+          }
+
+          // 默认：按单个简历解析
           const parsed = await this.aiService.parseResume(filePath);
 
           // 检查手机号是否重复（排除临时手机号）
@@ -560,6 +592,197 @@ export class ResumesService {
       total,
       statusCounts,
     };
+  }
+
+  /**
+   * 处理一个文件中的多个简历
+   */
+  private async handleMultipleResumes(
+    originalResumeId: number,
+    parsedResumes: any[],
+    filePath: string,
+    jobId?: number,
+    userId?: number,
+  ): Promise<void> {
+    try {
+      console.log(`检测到多个简历（共${parsedResumes.length}份），开始创建记录...`);
+      
+      const createdResumes: Resume[] = [];
+      
+      for (let i = 0; i < parsedResumes.length; i++) {
+        const parsed = parsedResumes[i];
+        
+        try {
+          // 检查手机号是否重复
+          const isTempPhone = parsed.phone && (
+            parsed.phone.startsWith('temp_') ||
+            parsed.phone === '00000000000' ||
+            parsed.phone.includes('@pending.com')
+          );
+
+          if (!isTempPhone && parsed.phone) {
+            const existingByPhone = await this.resumesRepository.findOne({
+              where: { phone: parsed.phone, isDeleted: false },
+            });
+
+            if (existingByPhone) {
+              console.log(`跳过重复简历: ${parsed.name} (手机号已存在)`);
+              continue;
+            }
+          }
+
+          // 创建新简历记录（第一个使用原记录，其他创建新记录）
+          let resume: Resume;
+          
+          if (i === 0) {
+            // 更新第一个简历到原记录
+            resume = await this.resumesRepository.findOne({
+              where: { id: originalResumeId },
+            });
+            
+            Object.assign(resume, {
+              name: parsed.name || '待完善',
+              phone: parsed.phone || `temp_${Date.now()}_${i}`,
+              email: parsed.email || `temp_${Date.now()}_${i}@pending.com`,
+              gender: parsed.gender,
+              age: parsed.age,
+              skills: parsed.skills || [],
+              experience: parsed.experience || [],
+              education: parsed.education || [],
+              yearsOfExperience: parsed.yearsOfExperience,
+              parseStatus: ParseStatus.SUCCESS,
+              parseError: null,
+            });
+          } else {
+            // 创建新的简历记录
+            resume = this.resumesRepository.create({
+              name: parsed.name || '待完善',
+              phone: parsed.phone || `temp_${Date.now()}_${i}`,
+              email: parsed.email || `temp_${Date.now()}_${i}@pending.com`,
+              gender: parsed.gender,
+              age: parsed.age,
+              skills: parsed.skills || [],
+              experience: parsed.experience || [],
+              education: parsed.education || [],
+              yearsOfExperience: parsed.yearsOfExperience,
+              fileName: `${path.basename(filePath)} - 简历${i + 1}`,
+              filePath: filePath, // 共享同一个文件
+              jobId,
+              importedBy: userId,
+              parseStatus: ParseStatus.SUCCESS,
+            });
+          }
+
+          const savedResume = await this.resumesRepository.save(resume);
+          createdResumes.push(savedResume);
+
+          // 记录审计日志
+          if (userId) {
+            await this.auditService.log(
+              savedResume.id,
+              i === 0 ? ResumeActionType.PARSE : ResumeActionType.CREATE,
+              userId,
+              {
+                multiResumeIndex: i + 1,
+                totalCount: parsedResumes.length,
+                name: savedResume.name,
+              },
+            );
+          }
+
+          console.log(`创建简历 ${i + 1}/${parsedResumes.length}: ${parsed.name}`);
+        } catch (error) {
+          console.error(`创建简历 ${i + 1} 失败:`, error.message);
+        }
+      }
+
+      console.log(`多简历处理完成: 成功创建 ${createdResumes.length}/${parsedResumes.length} 份简历`);
+    } catch (error) {
+      console.error('处理多简历失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 使用解析后的数据更新简历
+   */
+  private async updateResumeWithParsedData(
+    resumeId: number,
+    parsed: any,
+    userId?: number,
+  ): Promise<void> {
+    const resume = await this.resumesRepository.findOne({
+      where: { id: resumeId },
+    });
+
+    if (!resume) return;
+
+    try {
+      // 检查手机号是否重复
+      const isTempPhone = parsed.phone && (
+        parsed.phone.startsWith('temp_') ||
+        parsed.phone === '00000000000' ||
+        parsed.phone.includes('@pending.com')
+      );
+
+      if (parsed.phone && parsed.phone !== resume.phone && !isTempPhone) {
+        const existingByPhone = await this.resumesRepository.findOne({
+          where: { phone: parsed.phone, isDeleted: false },
+        });
+
+        if (existingByPhone && existingByPhone.id !== resumeId) {
+          resume.parseStatus = ParseStatus.FAILED;
+          resume.parseError = `手机号 ${parsed.phone} 已存在`;
+          await this.resumesRepository.save(resume);
+
+          if (userId) {
+            await this.auditService.log(
+              resumeId,
+              ResumeActionType.PARSE,
+              userId,
+              { status: 'failed', error: resume.parseError },
+            );
+          }
+          return;
+        }
+      }
+
+      // 更新简历信息
+      const needsManualEdit = parsed.name && (
+        parsed.name.includes('待手动录入') ||
+        parsed.summary?.includes('请手动编辑')
+      );
+
+      Object.assign(resume, {
+        name: parsed.name || resume.name,
+        phone: parsed.phone || resume.phone,
+        email: parsed.email || resume.email,
+        gender: parsed.gender,
+        age: parsed.age,
+        skills: parsed.skills || [],
+        experience: parsed.experience || [],
+        education: parsed.education || [],
+        yearsOfExperience: parsed.yearsOfExperience,
+        parseStatus: needsManualEdit ? ParseStatus.FAILED : ParseStatus.SUCCESS,
+        parseError: needsManualEdit ? (parsed.summary || '简历需要手动编辑录入') : null,
+      });
+
+      await this.resumesRepository.save(resume);
+
+      if (userId) {
+        await this.auditService.log(
+          resumeId,
+          ResumeActionType.PARSE,
+          userId,
+          { status: 'success', name: resume.name },
+        );
+      }
+
+      console.log(`简历解析成功: ${resume.name}`);
+    } catch (error) {
+      console.error('更新简历失败:', error);
+      throw error;
+    }
   }
 }
 

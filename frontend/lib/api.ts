@@ -167,3 +167,21 @@ export const reportsApi = {
     api.patch(`/reports/score/${submissionId}`, data),
 };
 
+export const resumesApi = {
+  getAll: (params?: { 
+    page?: number; 
+    limit?: number; 
+    status?: string; 
+    jobId?: number;
+    keyword?: string;
+    startDate?: string;
+    endDate?: string;
+  }) =>
+    api.get('/resumes', { params }),
+  getOne: (id: number) => api.get(`/resumes/${id}`),
+  create: (data: any) => api.post('/resumes', data),
+  update: (id: number, data: any) => api.patch(`/resumes/${id}`, data),
+  delete: (id: number) => api.delete(`/resumes/${id}`),
+  getStatistics: () => api.get('/resumes/statistics'),
+};
+

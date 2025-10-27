@@ -54,7 +54,10 @@ export class ResumesController {
 
   @Post('upload')
   @Roles('admin', 'hr')
-  @ApiOperation({ summary: '上传简历文件' })
+  @ApiOperation({ 
+    summary: '上传简历文件（支持多简历检测）',
+    description: '上传简历文件，可选启用多简历检测。启用后，如果文件包含多个简历，将自动拆分并创建多条记录。'
+  })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -63,15 +66,25 @@ export class ResumesController {
         file: {
           type: 'string',
           format: 'binary',
+          description: '简历文件（支持PDF、TXT、DOCX）',
         },
         jobId: {
           type: 'number',
           description: '关联岗位ID（可选）',
         },
+        detectMultiple: {
+          type: 'boolean',
+          description: '是否启用多简历检测（默认false）',
+          default: false,
+        },
       },
     },
   })
-  @ApiResponse({ status: 201, description: '上传成功', type: Resume })
+  @ApiResponse({ 
+    status: 201, 
+    description: '上传成功。如果检测到多个简历，会返回第一个简历的信息，其他简历在后台创建',
+    type: Resume 
+  })
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
@@ -89,10 +102,12 @@ export class ResumesController {
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
     @Body('jobId') jobId: string,
+    @Body('detectMultiple') detectMultiple: string,
     @CurrentUser() user: any,
   ) {
     const jobIdNum = jobId ? parseInt(jobId) : undefined;
-    return this.resumesService.uploadResume(file, jobIdNum, user.userId);
+    const enableDetection = detectMultiple === 'true' || detectMultiple === '1';
+    return this.resumesService.uploadResume(file, jobIdNum, user.userId, enableDetection);
   }
 
   @Get()

@@ -5,9 +5,13 @@ import { MatchingController } from './matching.controller';
 import { MatchResult } from './entities/match-result.entity';
 import { Job } from '../jobs/entities/job.entity';
 import { Resume } from '../resumes/entities/resume.entity';
+import { AiModule } from '../ai/ai.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([MatchResult, Job, Resume])],
+  imports: [
+    TypeOrmModule.forFeature([MatchResult, Job, Resume]),
+    AiModule,
+  ],
   controllers: [MatchingController],
   providers: [MatchingService],
   exports: [MatchingService],

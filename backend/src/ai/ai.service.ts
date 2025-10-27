@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import OpenAI from 'openai';
 import * as fs from 'fs';
 import * as pdf from 'pdf-parse';
+import * as mammoth from 'mammoth';
 
 export interface ParsedResume {
   name: string;
@@ -26,6 +27,12 @@ export interface ParsedResume {
   }>;
   yearsOfExperience?: number;
   summary?: string;
+}
+
+export interface MultiResumeDetection {
+  isMultiple: boolean;
+  count: number;
+  resumes: ParsedResume[];
 }
 
 export interface GeneratedQuestion {
@@ -98,10 +105,23 @@ export class AiService {
         const content = fs.readFileSync(filePath, 'utf-8');
         const jsonData = JSON.parse(content);
         return JSON.stringify(jsonData, null, 2);
-      } else if (ext === 'doc' || ext === 'docx') {
-        // DOC/DOCX 需要额外的库支持
-        this.logger.warn(`暂不支持 ${ext.toUpperCase()} 格式，请转换为 PDF 或 TXT`);
-        throw new Error(`暂不支持 ${ext.toUpperCase()} 格式，请转换为 PDF 或 TXT 后重新上传`);
+      } else if (ext === 'docx') {
+        // DOCX 格式 - 使用 mammoth 提取文本
+        this.logger.log('正在提取 DOCX 文件内容...');
+        const result = await mammoth.extractRawText({ path: filePath });
+        const extractedText = result.value || '';
+        
+        if (!extractedText || extractedText.trim().length === 0) {
+          this.logger.warn('DOCX 文本提取结果为空');
+          throw new Error('DOCX 文件内容为空或无法提取文本');
+        }
+        
+        this.logger.log(`成功提取 DOCX 文本，长度: ${extractedText.length} 字符`);
+        return extractedText;
+      } else if (ext === 'doc') {
+        // DOC 格式（旧格式）- 建议转换
+        this.logger.warn('检测到旧版 DOC 格式，建议转换为 DOCX 或 PDF');
+        throw new Error('暂不支持旧版 DOC 格式，请将文件转换为 DOCX 或 PDF 后重新上传。\n提示：可使用 Microsoft Word 或 WPS 打开后另存为 DOCX 格式。');
       } else {
         throw new Error(`不支持的文件格式: ${ext}`);
       }
@@ -663,6 +683,232 @@ export class AiService {
     } catch (error) {
       this.logger.error(`AI匹配度计算失败: ${error.message}`);
       throw new Error(`AI分析失败: ${error.message}`);
+    }
+  }
+
+  /**
+   * 检测并解析文件中的多个简历
+   * 识别一个文件中是否包含多个人的简历，并拆分解析
+   */
+  async detectAndParseMultipleResumes(
+    filePath: string,
+  ): Promise<MultiResumeDetection> {
+    const startTime = Date.now();
+
+    try {
+      this.logger.log(`开始检测文件中的简历数量: ${filePath}`);
+
+      // 第1步: 提取文件文本
+      const text = await this.extractTextFromFile(filePath);
+
+      if (!text || text.trim().length < 50) {
+        this.logger.warn('文件内容过短，按单个简历处理');
+        return {
+          isMultiple: false,
+          count: 1,
+          resumes: [],
+        };
+      }
+
+      // 第2步: 使用 AI 检测是否包含多个简历
+      const detection = await this.detectMultipleResumesInText(text);
+
+      if (!detection.isMultiple || detection.count <= 1) {
+        // 单个简历，使用原有解析方法
+        this.logger.log('检测到单个简历');
+        const singleResume = await this.parseResume(filePath);
+        return {
+          isMultiple: false,
+          count: 1,
+          resumes: [singleResume],
+        };
+      }
+
+      // 第3步: 多个简历，使用 AI 拆分并解析
+      this.logger.log(`检测到 ${detection.count} 个简历，开始拆分解析...`);
+      const resumes = await this.parseMultipleResumesFromText(text);
+
+      const duration = Date.now() - startTime;
+      this.logger.log(
+        `多简历解析完成: 共 ${resumes.length} 个，耗时: ${duration}ms`,
+      );
+
+      return {
+        isMultiple: true,
+        count: resumes.length,
+        resumes,
+      };
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      this.logger.error(
+        `多简历检测失败 (耗时: ${duration}ms): ${error.message}`,
+      );
+
+      // 失败时尝试按单个简历处理
+      try {
+        this.logger.log('尝试按单个简历处理...');
+        const singleResume = await this.parseResume(filePath);
+        return {
+          isMultiple: false,
+          count: 1,
+          resumes: [singleResume],
+        };
+      } catch (fallbackError) {
+        throw new Error(
+          `简历解析失败: ${error.message}`,
+        );
+      }
+    }
+  }
+
+  /**
+   * 使用 AI 检测文本中是否包含多个简历
+   */
+  private async detectMultipleResumesInText(
+    text: string,
+  ): Promise<{ isMultiple: boolean; count: number }> {
+    try {
+      const completion = await this.openai.chat.completions.create({
+        model: 'deepseek-chat',
+        messages: [
+          {
+            role: 'system',
+            content: `你是一个简历识别专家。请判断提供的文本中包含多少份简历。
+
+判断标准：
+1. 每份简历通常包含：姓名、联系方式（手机/邮箱）、工作经历、教育背景
+2. 如果有多个不同的姓名和联系方式，可能是多份简历
+3. 注意区分同一人的多次工作经历和不同人的简历
+
+返回 JSON 格式：
+{
+  "isMultiple": true/false,
+  "count": 简历数量（整数）,
+  "reason": "判断理由"
+}
+
+只返回 JSON，不要包含其他文字。`,
+          },
+          {
+            role: 'user',
+            content: `请分析以下文本包含多少份简历：\n\n${text.substring(0, 4000)}`,
+          },
+        ],
+        temperature: 0.2,
+        response_format: { type: 'json_object' },
+      });
+
+      const result = completion.choices[0].message.content;
+      const parsed = JSON.parse(result);
+
+      this.logger.log(
+        `AI 检测结果: ${parsed.isMultiple ? '多份简历' : '单份简历'}, 数量: ${parsed.count}, 理由: ${parsed.reason}`,
+      );
+
+      return {
+        isMultiple: parsed.isMultiple || false,
+        count: parsed.count || 1,
+      };
+    } catch (error) {
+      this.logger.error(`AI 检测简历数量失败: ${error.message}`);
+      // 失败时默认按单个简历处理
+      return {
+        isMultiple: false,
+        count: 1,
+      };
+    }
+  }
+
+  /**
+   * 从文本中解析多个简历
+   */
+  private async parseMultipleResumesFromText(
+    text: string,
+  ): Promise<ParsedResume[]> {
+    try {
+      const completion = await this.openai.chat.completions.create({
+        model: 'deepseek-chat',
+        messages: [
+          {
+            role: 'system',
+            content: `你是一个专业的简历解析助手。文本中包含多份简历，请将每份简历分别提取出来。
+
+返回 JSON 格式：
+{
+  "resumes": [
+    {
+      "name": "姓名",
+      "phone": "手机号（格式：13800138000）",
+      "email": "邮箱",
+      "gender": "性别（男/女）",
+      "age": 年龄,
+      "skills": ["技能1", "技能2"],
+      "experience": [
+        {
+          "company": "公司",
+          "title": "职位",
+          "startDate": "YYYY-MM",
+          "endDate": "YYYY-MM或至今",
+          "description": "描述"
+        }
+      ],
+      "education": [
+        {
+          "school": "学校",
+          "degree": "学历",
+          "major": "专业",
+          "startYear": 年份,
+          "endYear": 年份
+        }
+      ],
+      "yearsOfExperience": 工作年限,
+      "summary": "个人简介"
+    }
+  ]
+}
+
+重要：
+1. resumes 数组中每个元素是一份独立的简历
+2. 确保每份简历都有姓名和联系方式
+3. 如果某些字段找不到，设置为 null 或空数组
+4. 只返回 JSON，不要其他文字`,
+          },
+          {
+            role: 'user',
+            content: `请解析以下多份简历：\n\n${text}`,
+          },
+        ],
+        temperature: 0.2,
+        response_format: { type: 'json_object' },
+      });
+
+      const result = completion.choices[0].message.content;
+      const parsed = JSON.parse(result);
+
+      if (!parsed.resumes || !Array.isArray(parsed.resumes)) {
+        throw new Error('AI 返回的简历数组格式错误');
+      }
+
+      // 验证和清洗每份简历数据
+      const validatedResumes: ParsedResume[] = [];
+      for (const resume of parsed.resumes) {
+        try {
+          const validated = this.validateAndCleanResumeData(resume);
+          validatedResumes.push(validated);
+        } catch (error) {
+          this.logger.warn(`跳过无效简历: ${error.message}`);
+        }
+      }
+
+      if (validatedResumes.length === 0) {
+        throw new Error('没有解析出有效的简历');
+      }
+
+      this.logger.log(`成功解析 ${validatedResumes.length} 份简历`);
+      return validatedResumes;
+    } catch (error) {
+      this.logger.error(`解析多份简历失败: ${error.message}`);
+      throw error;
     }
   }
 }

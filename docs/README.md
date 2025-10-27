@@ -6,17 +6,55 @@
 
 ```
 docs/
-├── README.md                    # 本索引文件
-├── PRD.md                       # 产品需求文档
-├── TAD.md                       # 技术架构文档
-├── FSD.md                       # 功能规格文档
-├── tasks.md                     # 任务清单
-├── api/                         # API 文档
-├── deployment/                  # 部署文档
-├── design/                      # 设计文档
-├── development/                 # 开发文档
-├── features/                    # 功能文档
-└── testing/                     # 测试文档
+├── README.md                           # 本索引文件
+├── PRD.md                              # 产品需求文档
+├── TAD.md                              # 技术架构文档
+├── FSD.md                              # 功能规格文档
+├── tasks.md                            # 任务清单
+├── AI_IMPLEMENTATION_SUMMARY.md        # AI 功能实现总结
+│
+├── api/                                # API 文档
+│   ├── API_RESPONSE_FORMAT.md          # API 响应格式规范
+│   ├── API_USAGE_EXAMPLES.md           # API 使用示例
+│   ├── BUTTON_IMPORT_FIX.md            # Button 组件导入修复
+│   ├── FRONTEND_ERROR_HANDLING_FIX.md  # 前端错误处理修复
+│   ├── JOBS_API.md                     # 岗位管理 API
+│   ├── SWAGGER_GUIDE.md                # Swagger 使用指南
+│   ├── UNIFIED_RESPONSE_CHANGELOG.md   # 统一响应格式变更日志
+│   └── UNIFIED_RESPONSE_SUMMARY.md     # 统一响应格式总结
+│
+├── deployment/                         # 部署文档
+│   ├── CHARSET_FIX_SUMMARY.md          # 字符集修复总结
+│   ├── DATABASE_CHARSET_FIX.md         # 数据库字符集修复
+│   └── DEPLOYMENT.md                   # 部署指南
+│
+├── design/                             # 设计文档
+│   └── ui-design-system.md             # UI 设计系统
+│
+├── development/                        # 开发文档
+│   ├── DEVELOPMENT.md                  # 开发指南
+│   ├── DEV_MODES.md                    # 开发模式对比
+│   ├── DEV_QUICK_START.md              # 快速开始 ⭐
+│   ├── FRONTEND.md                     # 前端开发指南
+│   ├── LOCAL_DEV_GUIDE.md              # 本地开发完整指南
+│   └── LOCAL_DEV_SETUP.md              # 本地开发环境配置
+│
+├── features/                           # 功能文档
+│   ├── AI_FEATURES.md                  # AI 功能概述
+│   ├── AI_INTEGRATION_GUIDE.md         # AI 集成指南
+│   ├── AI_RESUME_PARSING.md            # AI 简历解析
+│   ├── AI_RESUME_PARSING_EXAMPLE.md    # AI 简历解析示例
+│   ├── JOBS_FEATURE.md                 # 岗位管理功能
+│   ├── JOBS_IMPLEMENTATION_SUMMARY.md  # 岗位功能实现总结
+│   ├── JOBS_QUICK_START.md             # 岗位管理快速开始
+│   ├── PDF_OCR_INTEGRATION.md          # PDF OCR 集成
+│   ├── QUESTIONS_FEATURE_SUMMARY.md    # 题库功能总结
+│   ├── RESUME_MANAGEMENT_ENHANCEMENT.md # 简历管理增强
+│   ├── RESUME_QUICK_START.md           # 简历管理快速开始
+│   └── SCAN_RESUME_HANDLING.md         # 扫描简历处理
+│
+└── testing/                            # 测试文档
+    └── JOBS_TESTING_GUIDE.md           # 岗位管理测试指南
 ```
 
 ## 🚀 快速开始
@@ -35,6 +73,9 @@ docs/
 
 ### 项目管理
 - **[任务清单](tasks.md)** - 开发任务和进度跟踪
+
+### AI 实现总结
+- **[AI_IMPLEMENTATION_SUMMARY.md](AI_IMPLEMENTATION_SUMMARY.md)** - AI 功能实现总结
 
 ## 📂 文档分类
 
@@ -59,13 +100,44 @@ docs/
 - **[ui-design-system.md](design/ui-design-system.md)** - UI 设计系统和规范
 
 ### 🎯 功能文档 (`features/`)
+
+#### 岗位管理
 - **[JOBS_FEATURE.md](features/JOBS_FEATURE.md)** - 岗位管理功能说明
 - **[JOBS_QUICK_START.md](features/JOBS_QUICK_START.md)** - 岗位管理快速开始 ⭐
 - **[JOBS_IMPLEMENTATION_SUMMARY.md](features/JOBS_IMPLEMENTATION_SUMMARY.md)** - 岗位功能实现总结
 
+#### 简历管理
+- **[RESUME_QUICK_START.md](features/RESUME_QUICK_START.md)** - 简历管理快速开始 ⭐
+- **[RESUME_MANAGEMENT_ENHANCEMENT.md](features/RESUME_MANAGEMENT_ENHANCEMENT.md)** - 简历管理增强功能
+
+#### 题库管理
+- **[QUESTIONS_FEATURE_SUMMARY.md](features/QUESTIONS_FEATURE_SUMMARY.md)** - 题库功能总结
+
+#### AI 功能
+- **[AI_FEATURES.md](features/AI_FEATURES.md)** - AI 功能概述
+- **[AI_INTEGRATION_GUIDE.md](features/AI_INTEGRATION_GUIDE.md)** - AI 集成指南
+- **[AI_RESUME_PARSING.md](features/AI_RESUME_PARSING.md)** - AI 简历解析功能
+- **[AI_RESUME_PARSING_EXAMPLE.md](features/AI_RESUME_PARSING_EXAMPLE.md)** - AI 简历解析示例
+- **[PDF_OCR_INTEGRATION.md](features/PDF_OCR_INTEGRATION.md)** - PDF OCR 集成
+- **[SCAN_RESUME_HANDLING.md](features/SCAN_RESUME_HANDLING.md)** - 扫描简历处理
+
 ### 📡 API 文档 (`api/`)
+
+#### API 使用指南
+- **[SWAGGER_GUIDE.md](api/SWAGGER_GUIDE.md)** - Swagger API 文档使用指南 ⭐
+- **[API_USAGE_EXAMPLES.md](api/API_USAGE_EXAMPLES.md)** - API 使用示例
+
+#### API 规范
+- **[API_RESPONSE_FORMAT.md](api/API_RESPONSE_FORMAT.md)** - API 响应格式规范
+- **[UNIFIED_RESPONSE_SUMMARY.md](api/UNIFIED_RESPONSE_SUMMARY.md)** - 统一响应格式总结
+- **[UNIFIED_RESPONSE_CHANGELOG.md](api/UNIFIED_RESPONSE_CHANGELOG.md)** - 统一响应格式变更日志
+
+#### 模块 API
 - **[JOBS_API.md](api/JOBS_API.md)** - 岗位管理 API 文档
-- **[SWAGGER_GUIDE.md](api/SWAGGER_GUIDE.md)** - Swagger API 文档使用指南
+
+#### 问题修复
+- **[FRONTEND_ERROR_HANDLING_FIX.md](api/FRONTEND_ERROR_HANDLING_FIX.md)** - 前端错误处理修复
+- **[BUTTON_IMPORT_FIX.md](api/BUTTON_IMPORT_FIX.md)** - Button 组件导入修复
 
 ### 🧪 测试文档 (`testing/`)
 - **[JOBS_TESTING_GUIDE.md](testing/JOBS_TESTING_GUIDE.md)** - 岗位管理测试指南
@@ -134,8 +206,11 @@ docs/
 - ✅ 整理所有 md 文档到 `docs/` 目录
 - ✅ 将开发相关文档移至 `docs/development/`
 - ✅ 将功能相关文档移至 `docs/features/`
+- ✅ 将 API 相关文档整理到 `docs/api/`
+- ✅ 将 AI 相关文档从 `backend/docs/` 移至 `docs/features/`
+- ✅ 移动 `UNIFIED_RESPONSE_SUMMARY.md` 到 `docs/api/`
 - ✅ 更新所有文档的交叉引用链接
-- ✅ 创建文档索引文件
+- ✅ 创建完整的文档索引文件
 
 ## 📚 扩展阅读
 

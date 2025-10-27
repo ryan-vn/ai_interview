@@ -29,10 +29,13 @@ export class MatchingController {
 
   @Get('calculate')
   @Roles('admin', 'hr')
-  @ApiOperation({ summary: '计算简历与岗位的匹配度' })
+  @ApiOperation({ 
+    summary: '计算简历与岗位的匹配度（使用AI智能分析）',
+    description: '使用 AI 深度分析简历与岗位的匹配度，提供详细的分析报告，包括匹配优势和待提升项' 
+  })
   @ApiQuery({ name: 'resumeId', description: '简历ID', example: 1 })
   @ApiQuery({ name: 'jobId', description: '岗位ID', example: 1 })
-  @ApiResponse({ status: 200, description: '计算成功', type: MatchResult })
+  @ApiResponse({ status: 200, description: '计算成功，返回匹配度分数和详细分析', type: MatchResult })
   async calculateMatch(
     @Query('resumeId', ParseIntPipe) resumeId: number,
     @Query('jobId', ParseIntPipe) jobId: number,
@@ -42,7 +45,10 @@ export class MatchingController {
 
   @Get('recommend-jobs')
   @Roles('admin', 'hr')
-  @ApiOperation({ summary: '为简历推荐岗位' })
+  @ApiOperation({ 
+    summary: '为简历推荐岗位（基于AI智能匹配）',
+    description: '使用 AI 分析简历，推荐最匹配的岗位' 
+  })
   @ApiQuery({ name: 'resumeId', description: '简历ID', example: 1 })
   @ApiQuery({
     name: 'limit',
@@ -52,7 +58,7 @@ export class MatchingController {
   })
   @ApiResponse({
     status: 200,
-    description: '推荐成功',
+    description: '推荐成功，返回按匹配度排序的岗位列表',
     type: [MatchResult],
   })
   async recommendJobs(
@@ -78,7 +84,10 @@ export class MatchingController {
 
   @Get('recommend-resumes')
   @Roles('admin', 'hr')
-  @ApiOperation({ summary: '为岗位推荐候选人' })
+  @ApiOperation({ 
+    summary: '为岗位推荐候选人（基于AI智能匹配）',
+    description: '使用 AI 分析岗位要求，推荐最匹配的候选人' 
+  })
   @ApiQuery({ name: 'jobId', description: '岗位ID', example: 1 })
   @ApiQuery({
     name: 'limit',
@@ -88,7 +97,7 @@ export class MatchingController {
   })
   @ApiResponse({
     status: 200,
-    description: '推荐成功',
+    description: '推荐成功，返回按匹配度排序的候选人列表',
     type: [MatchResult],
   })
   async recommendResumes(
@@ -126,8 +135,20 @@ export class MatchingController {
 
   @Post('batch-calculate')
   @Roles('admin', 'hr')
-  @ApiOperation({ summary: '批量计算匹配度' })
-  @ApiResponse({ status: 200, description: '计算完成' })
+  @ApiOperation({ 
+    summary: '批量计算匹配度（使用AI智能分析）',
+    description: '批量计算多个简历与多个岗位的匹配度，使用 AI 进行智能分析。注意：大量计算可能需要较长时间' 
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: '计算完成，返回总数和完成数',
+    schema: {
+      properties: {
+        total: { type: 'number', description: '总计算数量' },
+        completed: { type: 'number', description: '已完成数量' },
+      },
+    },
+  })
   async batchCalculate(
     @Body('resumeIds') resumeIds?: number[],
     @Body('jobIds') jobIds?: number[],

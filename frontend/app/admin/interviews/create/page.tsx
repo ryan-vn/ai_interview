@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Calendar, Clock, User, Mail, Phone, Briefcase, Users, Copy, ExternalLink, CheckCircle, Link } from 'lucide-react';
+import { Calendar, Clock, User, Mail, Phone, Briefcase, Users, Copy, ExternalLink, CheckCircle, Link, FileText } from 'lucide-react';
 import { format } from 'date-fns';
-import { interviewsApi, usersApi } from '@/lib/api';
+import { zhCN } from 'date-fns/locale';
+import { interviewsApi, usersApi, resumesApi } from '@/lib/api';
 
 interface Template {
   id: number;
@@ -24,11 +25,27 @@ interface User {
   email: string;
 }
 
+interface Resume {
+  id: number;
+  name: string;
+  phone: string;
+  email: string;
+  jobId?: number;
+  status: string;
+  createdAt: string;
+  job?: {
+    id: number;
+    title: string;
+  };
+}
+
 export default function CreateInterviewPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [interviewers, setInterviewers] = useState<User[]>([]);
+  const [resumes, setResumes] = useState<Resume[]>([]);
+  const [selectedResumeId, setSelectedResumeId] = useState<string>('');
   const [createdSession, setCreatedSession] = useState<any>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -57,6 +74,7 @@ export default function CreateInterviewPage() {
   useEffect(() => {
     fetchTemplates();
     fetchInterviewers();
+    fetchRecentResumes();
   }, []);
 
   const fetchTemplates = async () => {
@@ -82,6 +100,20 @@ export default function CreateInterviewPage() {
     } catch (error) {
       console.error('获取面试官失败:', error);
       setInterviewers([]); // Ensure it's always an array
+    }
+  };
+
+  const fetchRecentResumes = async () => {
+    try {
+      const response = await resumesApi.getAll({ page: 1, limit: 20 });
+      console.log('Resumes API response:', response.data);
+      
+      // Handle the response structure
+      const resumesData = response.data?.data || response.data || [];
+      setResumes(Array.isArray(resumesData) ? resumesData : []);
+    } catch (error) {
+      console.error('获取简历列表失败:', error);
+      setResumes([]);
     }
   };
 
@@ -157,6 +189,35 @@ export default function CreateInterviewPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const handleResumeSelect = (resumeId: string) => {
+    setSelectedResumeId(resumeId);
+    
+    if (!resumeId) {
+      // 清空选择
+      return;
+    }
+    
+    const resume = resumes.find(r => r.id === parseInt(resumeId));
+    if (resume) {
+      setFormData(prev => ({
+        ...prev,
+        candidateName: resume.name,
+        candidateEmail: resume.email,
+        candidatePhone: resume.phone,
+        position: resume.job?.title || '',
+      }));
+      
+      // 清除相关字段的错误
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.candidateName;
+        delete newErrors.candidateEmail;
+        delete newErrors.candidatePhone;
+        return newErrors;
+      });
     }
   };
 
@@ -282,6 +343,31 @@ export default function CreateInterviewPage() {
                   <User className="h-5 w-5 mr-2" />
                   候选人信息
                 </h3>
+                
+                {/* 简历选择器 */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    <Label className="text-blue-900 font-medium">从最新简历中选择</Label>
+                  </div>
+                  <select
+                    value={selectedResumeId}
+                    onChange={(e) => handleResumeSelect(e.target.value)}
+                    className="w-full px-3 py-2 border border-blue-300 rounded-md bg-white"
+                  >
+                    <option value="">手动输入候选人信息</option>
+                    {resumes.map(resume => (
+                      <option key={resume.id} value={resume.id}>
+                        {resume.name} - {resume.phone} 
+                        {resume.job?.title ? ` - ${resume.job.title}` : ''}
+                        {' '}(导入于: {new Date(resume.createdAt).toLocaleString('zh-CN')})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-sm text-blue-700 mt-2">
+                    💡 选择简历后会自动填充候选人信息和岗位
+                  </p>
+                </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
