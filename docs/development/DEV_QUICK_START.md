@@ -36,6 +36,7 @@ pnpm run dev
 
 - **前端：** http://localhost:3000
 - **后端 API：** http://localhost:3001
+- **API文档：** http://localhost:3001/api/docs
 - **MySQL：** localhost:3306
   - 用户：`interview_user`
   - 密码：`interview_pass`
@@ -119,24 +120,6 @@ pnpm start
 pnpm run lint
 ```
 
-## 📦 项目架构
-
-```
-interview/
-├── backend/              # NestJS 后端（本地运行）
-│   ├── src/             # 源代码
-│   ├── test/            # 测试文件
-│   └── .env             # 环境变量
-├── frontend/            # Next.js 前端（本地运行）
-│   ├── app/             # 页面和路由
-│   ├── components/      # React 组件
-│   └── .env.local       # 环境变量
-├── docker-compose.dev.yml   # 开发环境 Docker 配置（仅数据库）
-├── docker-compose.yml       # 生产环境 Docker 配置（全栈）
-├── dev.sh              # 开发环境启动脚本
-└── stop-dev.sh         # 停止开发环境脚本
-```
-
 ## ⚙️ 环境配置
 
 ### 后端 (`backend/.env`)
@@ -156,6 +139,10 @@ PORT=3001
 
 JWT_SECRET=your-super-secret-jwt-key
 JWT_EXPIRES_IN=7d
+
+# DeepSeek AI（可选）
+DEEPSEEK_API_KEY=sk-your-api-key-here
+DEEPSEEK_BASE_URL=https://api.deepseek.com
 ```
 
 ### 前端 (`frontend/.env.local`)
@@ -170,9 +157,8 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 
 ```bash
 # 查找并终止占用端口的进程
-lsof -ti:3000  # 前端
-lsof -ti:3001  # 后端
-kill -9 <PID>
+lsof -ti:3000 | xargs kill -9  # 前端
+lsof -ti:3001 | xargs kill -9  # 后端
 ```
 
 ### 数据库连接失败
@@ -199,10 +185,9 @@ pnpm install
 
 ## 📚 详细文档
 
-- [完整本地开发指南](./LOCAL_DEV_GUIDE.md)
-- [项目开发文档](./DEVELOPMENT.md)
-- [前端开发指南](./FRONTEND.md)
-- [API 文档](../api/)
+- [完整开发指南](../DEVELOPMENT_GUIDE.md)
+- [功能使用手册](../USER_GUIDE.md)
+- [部署指南](../DEPLOYMENT.md)
 
 ## 💡 开发提示
 
@@ -213,5 +198,5 @@ pnpm install
 
 ---
 
-**需要帮助？** 查看 [完整开发指南](./LOCAL_DEV_GUIDE.md) 或联系团队成员。
+**需要帮助？** 查看 [完整开发指南](../DEVELOPMENT_GUIDE.md) 或联系团队成员。
 

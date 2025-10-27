@@ -33,6 +33,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Public } from '../common/decorators/public.decorator';
 
 @ApiTags('题库管理')
 @ApiBearerAuth()
@@ -209,7 +210,8 @@ export class QuestionsController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: '获取题目详情' })
+  @Public() // 允许访客访问（用于面试答题）
+  @ApiOperation({ summary: '获取题目详情（支持访客访问）' })
   @ApiResponse({ status: 200, description: '获取成功' })
   @ApiResponse({ status: 404, description: '题目不存在' })
   findOne(@Param('id', ParseIntPipe) id: number) {

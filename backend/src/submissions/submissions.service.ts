@@ -15,14 +15,14 @@ export class SubmissionsService {
 
   async create(
     createDto: CreateSubmissionDto,
-    userId: number,
+    userId: number | null,
   ): Promise<Submission> {
     // 获取题目信息
     const question = await this.questionsService.findOne(createDto.questionId);
 
     const submission = this.submissionsRepository.create({
       ...createDto,
-      userId,
+      userId: userId ?? null, // 访客时为 null
       type: question.type,
       status: SubmissionStatus.PENDING,
     });
@@ -35,7 +35,7 @@ export class SubmissionsService {
     return saved;
   }
 
-  async findAll(sessionId?: number, userId?: number): Promise<Submission[]> {
+  async findAll(sessionId?: number, userId?: number, questionId?: number): Promise<Submission[]> {
     const queryBuilder =
       this.submissionsRepository.createQueryBuilder('submission');
 
@@ -43,8 +43,16 @@ export class SubmissionsService {
       queryBuilder.andWhere('submission.sessionId = :sessionId', { sessionId });
     }
 
-    if (userId) {
-      queryBuilder.andWhere('submission.userId = :userId', { userId });
+    if (userId !== undefined) {
+      if (userId === null) {
+        queryBuilder.andWhere('submission.userId IS NULL');
+      } else {
+        queryBuilder.andWhere('submission.userId = :userId', { userId });
+      }
+    }
+
+    if (questionId) {
+      queryBuilder.andWhere('submission.questionId = :questionId', { questionId });
     }
 
     queryBuilder

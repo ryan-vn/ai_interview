@@ -47,20 +47,33 @@ export class InterviewsController {
   }
 
   @Get('sessions/:id')
-  @ApiOperation({ summary: '获取面试场次详情' })
-  findOneSession(@Param('id') id: string) {
+  @ApiOperation({ summary: '获取面试场次详情（支持访客访问）' })
+  @Public() // 允许使用邀请令牌访问
+  findOneSession(@Param('id') id: string, @Request() req) {
+    // 如果是访客，验证 sessionId 是否匹配
+    if (req.user?.role === 'guest' && req.user.sessionId !== +id) {
+      throw new Error('无权访问该面试场次');
+    }
     return this.interviewsService.findOneSession(+id);
   }
 
   @Patch('sessions/:id/start')
-  @ApiOperation({ summary: '开始面试' })
-  startSession(@Param('id') id: string) {
+  @ApiOperation({ summary: '开始面试（支持访客访问）' })
+  @Public() // 允许使用邀请令牌访问
+  startSession(@Param('id') id: string, @Request() req) {
+    if (req.user?.role === 'guest' && req.user.sessionId !== +id) {
+      throw new Error('无权操作该面试场次');
+    }
     return this.interviewsService.startSession(+id);
   }
 
   @Patch('sessions/:id/complete')
-  @ApiOperation({ summary: '完成面试' })
-  completeSession(@Param('id') id: string) {
+  @ApiOperation({ summary: '完成面试（支持访客访问）' })
+  @Public() // 允许使用邀请令牌访问
+  completeSession(@Param('id') id: string, @Request() req) {
+    if (req.user?.role === 'guest' && req.user.sessionId !== +id) {
+      throw new Error('无权操作该面试场次');
+    }
     return this.interviewsService.completeSession(+id);
   }
 

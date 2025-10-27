@@ -60,11 +60,14 @@ export default function InvitePage() {
   const handleJoinInterview = async () => {
     setJoining(true);
     try {
-      await interviewsApi.joinSessionByInvite(token);
-      // 跳转到面试页面
+      // 将 token 保存到 sessionStorage，用于后续 API 调用
+      sessionStorage.setItem('invite_token', token);
+      sessionStorage.setItem('session_id', String(session?.id));
+      
+      // 直接跳转到面试页面（复用现有页面）
       router.push(`/interviews/${session?.id}`);
     } catch (err: any) {
-      setError(err.response?.data?.message || '加入面试失败');
+      setError(err.message || '加入面试失败');
     } finally {
       setJoining(false);
     }
@@ -226,7 +229,7 @@ export default function InvitePage() {
 
             {/* 提示信息 */}
             <div className="text-center text-sm text-gray-500">
-              <p>请确保您已登录系统，如果没有账号，请先注册</p>
+              <p>点击"加入面试"即可直接开始面试，无需注册或登录</p>
               <p>面试链接有效期至：{format(new Date(session.inviteExpiresAt), 'yyyy年MM月dd日 HH:mm', { locale: zhCN })}</p>
             </div>
           </CardContent>

@@ -46,12 +46,12 @@ export class Submission {
   @JoinColumn({ name: 'question_id' })
   question: Question;
 
-  @ApiProperty({ description: '用户ID', example: 1 })
-  @Column({ name: 'user_id' })
-  userId: number;
+  @ApiProperty({ description: '用户ID（访客时为null）', example: 1, required: false })
+  @Column({ name: 'user_id', nullable: true })
+  userId: number | null;
 
-  @ApiProperty({ description: '用户', type: () => User })
-  @ManyToOne(() => User, (user) => user.submissions)
+  @ApiProperty({ description: '用户', type: () => User, required: false })
+  @ManyToOne(() => User, (user) => user.submissions, { nullable: true })
   @JoinColumn({ name: 'user_id' })
   user: User;
 

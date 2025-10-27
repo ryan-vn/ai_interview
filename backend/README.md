@@ -85,20 +85,22 @@ JWT_SECRET=your-secret-key
 JWT_EXPIRES_IN=7d
 ```
 
-### 数据库迁移
+### 数据库初始化
 
-执行数据库迁移脚本：
+执行数据库初始化脚本：
 
 ```bash
-mysql -u interview_user -p interview_system < migrations/001_add_jobs_resumes_matching.sql
+mysql -u interview_user -p interview_system < init.sql
 ```
 
 或使用 Docker Compose（如果数据库在容器中）：
 
 ```bash
-docker cp migrations/001_add_jobs_resumes_matching.sql interview-mysql:/tmp/
-docker exec -it interview-mysql mysql -u interview_user -p interview_system < /tmp/001_add_jobs_resumes_matching.sql
+docker cp init.sql interview-mysql:/tmp/
+docker exec -it interview-mysql mysql -u interview_user -p interview_system < /tmp/init.sql
 ```
+
+**注意**：`init.sql` 包含了所有表结构、索引、外键和初始数据，新系统只需执行一次即可。
 
 ### 启动服务
 
@@ -176,7 +178,8 @@ backend/
 │   ├── common/            # 公共模块
 │   ├── app.module.ts      # 主模块
 │   └── main.ts            # 入口文件
-├── migrations/            # 数据库迁移
+├── init.sql               # 数据库初始化脚本
+├── DATABASE_SCHEMA.md     # 数据库架构说明
 ├── uploads/               # 文件上传目录
 │   └── resumes/           # 简历文件
 ├── test/                  # 测试文件

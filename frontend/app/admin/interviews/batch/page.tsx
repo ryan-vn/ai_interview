@@ -42,7 +42,9 @@ interface Template {
   id: number;
   name: string;
   description: string;
-  duration: number;
+  timeLimit: number;  // 时间限制（秒）
+  questionIds: number[];  // 题目ID列表
+  instructions?: string;  // 面试说明
 }
 
 interface User {

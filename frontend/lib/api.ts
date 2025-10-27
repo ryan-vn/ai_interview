@@ -21,9 +21,16 @@ export const api = axios.create({
 // 请求拦截器 - 添加 token
 api.interceptors.request.use(
   (config) => {
+    // 优先使用 JWT token
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      // 如果没有 JWT token，尝试使用 invite_token
+      const inviteToken = sessionStorage.getItem('invite_token');
+      if (inviteToken) {
+        config.headers['X-Invite-Token'] = inviteToken;
+      }
     }
     return config;
   },
@@ -152,7 +159,7 @@ export const interviewsApi = {
 };
 
 export const submissionsApi = {
-  getAll: (params?: { sessionId?: number; userId?: number }) =>
+  getAll: (params?: { sessionId?: number; userId?: number; questionId?: number }) =>
     api.get('/submissions', { params }),
   getOne: (id: number) => api.get(`/submissions/${id}`),
   create: (data: any) => api.post('/submissions', data),

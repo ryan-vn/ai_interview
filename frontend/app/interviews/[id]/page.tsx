@@ -77,6 +77,12 @@ export default function InterviewDetailPage() {
 
   const handleStartInterview = async () => {
     try {
+      // 如果面试已完成，不允许继续
+      if (session?.status === 'completed') {
+        alert('该面试已结束，无法继续答题。您可以查看面试结果或联系管理员。');
+        return;
+      }
+
       if (session?.status === 'scheduled') {
         await interviewsApi.startSession(Number(sessionId));
       }
@@ -179,10 +185,18 @@ export default function InterviewDetailPage() {
             </div>
 
             {session.status === 'completed' && (
-              <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <p className="text-sm text-blue-800 dark:text-blue-300">
-                  ✓ 该面试已完成，您可以查看结果或重新练习题目
-                </p>
+              <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                <div className="flex items-start space-x-2">
+                  <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-green-800 dark:text-green-300">
+                      面试已完成
+                    </p>
+                    <p className="text-xs text-green-700 dark:text-green-400 mt-1">
+                      该面试已于 {session.actualEndAt ? new Date(session.actualEndAt).toLocaleString('zh-CN') : '未知时间'} 结束，无法继续答题
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>
@@ -222,9 +236,16 @@ export default function InterviewDetailPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => router.push(`/interview/${sessionId}/question/${question.id}`)}
+                    onClick={() => {
+                      if (session.status === 'completed') {
+                        alert('该面试已结束，无法继续答题');
+                        return;
+                      }
+                      router.push(`/interview/${sessionId}/question/${question.id}`);
+                    }}
+                    disabled={session.status === 'completed'}
                   >
-                    开始
+                    {session.status === 'completed' ? '已结束' : '开始'}
                     <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
                 </div>
@@ -237,19 +258,31 @@ export default function InterviewDetailPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col space-y-3">
-              <Button
-                size="lg"
-                className="w-full"
-                onClick={handleStartInterview}
-                disabled={questions.length === 0}
-              >
-                <Play className="mr-2 h-5 w-5" />
-                {session.status === 'in_progress' ? '继续面试' : '开始面试'}
-              </Button>
+              {session.status !== 'completed' ? (
+                <Button
+                  size="lg"
+                  className="w-full"
+                  onClick={handleStartInterview}
+                  disabled={questions.length === 0}
+                >
+                  <Play className="mr-2 h-5 w-5" />
+                  {session.status === 'in_progress' ? '继续面试' : '开始面试'}
+                </Button>
+              ) : (
+                <Button
+                  size="lg"
+                  className="w-full"
+                  variant="outline"
+                  disabled
+                >
+                  <CheckCircle className="mr-2 h-5 w-5" />
+                  面试已结束
+                </Button>
+              )}
               
               {session.status === 'completed' && (
                 <Button
-                  variant="outline"
+                  variant="default"
                   size="lg"
                   className="w-full"
                   onClick={() => router.push(`/history/${sessionId}`)}

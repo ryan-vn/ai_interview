@@ -15,8 +15,9 @@ interface Template {
   id: number;
   name: string;
   description: string;
-  duration: number;
-  passingScore: number;
+  timeLimit: number;  // 时间限制（秒）
+  questionIds: number[];  // 题目ID列表
+  instructions?: string;  // 面试说明
 }
 
 interface User {
@@ -299,7 +300,7 @@ export default function CreateInterviewPage() {
                       <option value="">请选择模板</option>
                       {templates.map(template => (
                         <option key={template.id} value={template.id}>
-                          {template.name} ({template.duration}分钟)
+                          {template.name} ({Math.round(template.timeLimit / 60)}分钟)
                         </option>
                       ))}
                     </select>
